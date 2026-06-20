@@ -1,0 +1,18 @@
+=== SCENARIO: interest  (borrower BRW00001) ===
+AGENT   : Hello Aryan Maharaj, thank you for calling LendCo support, this is Aarav. How can I help you with your loan today?
+BORROWER: How much interest have I paid so far?
+AGENT   : So far you've paid Rs.10,790 towards interest and Rs.37,953 towards principal, out of 10 EMIs paid. Your outstanding principal is Rs.62,047. Interest is charged on the reducing balance, so early EMIs carry more interest (per our policy 10_interest_calculation, 01_loan_faqs).
+      [intent=interest_paid sentiment=neutral tools=[get_loan_analytics,search_knowledge_base]]
+--- SUMMARY ---
+{
+  "borrower_id": "BRW00001",
+  "intent": "interest_paid",
+  "turns": 1,
+  "resolved": true,
+  "resolution_path": "get_loan_analytics->search_knowledge_base",
+  "actions": [],
+  "tools_used": [
+    "get_loan_analytics",
+    "search_knowledge_base"
+  ]
+}

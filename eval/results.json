@@ -1,0 +1,121 @@
+{
+  "intents": {
+    "intent_accuracy": 0.917,
+    "labelled_n": 12
+  },
+  "scenarios": {
+    "overall": {
+      "total_runs": 64,
+      "resolution_rate": 1.0,
+      "grounding_rate": 0.797,
+      "avg_turns": 1.12,
+      "redundant_question_rate": 0.0
+    },
+    "per_scenario": {
+      "remaining": {
+        "runs": 8,
+        "resolution_rate": 1.0,
+        "grounding_rate": 1.0,
+        "intent_accuracy": 1.0,
+        "avg_turns": 1.0,
+        "top_tools": [
+          "get_loan_analytics"
+        ]
+      },
+      "interest": {
+        "runs": 8,
+        "resolution_rate": 1.0,
+        "grounding_rate": 1.0,
+        "intent_accuracy": 1.0,
+        "avg_turns": 1.0,
+        "top_tools": [
+          "get_loan_analytics",
+          "search_knowledge_base"
+        ]
+      },
+      "penalty": {
+        "runs": 8,
+        "resolution_rate": 1.0,
+        "grounding_rate": 1.0,
+        "intent_accuracy": 1.0,
+        "avg_turns": 1.0,
+        "top_tools": [
+          "get_loan_analytics",
+          "get_gateway_logs",
+          "search_knowledge_base"
+        ]
+      },
+      "payment_failure": {
+        "runs": 8,
+        "resolution_rate": 1.0,
+        "grounding_rate": 0.375,
+        "intent_accuracy": 1.0,
+        "avg_turns": 1.0,
+        "top_tools": [
+          "get_gateway_logs",
+          "search_knowledge_base",
+          "create_payment_link"
+        ]
+      },
+      "waiver": {
+        "runs": 8,
+        "resolution_rate": 1.0,
+        "grounding_rate": 1.0,
+        "intent_accuracy": 1.0,
+        "avg_turns": 2.0,
+        "top_tools": [
+          "get_gateway_logs",
+          "search_knowledge_base",
+          "create_support_ticket",
+          "create_payment_link"
+        ]
+      },
+      "foreclosure": {
+        "runs": 8,
+        "resolution_rate": 1.0,
+        "grounding_rate": 1.0,
+        "intent_accuracy": 1.0,
+        "avg_turns": 1.0,
+        "top_tools": [
+          "get_loan_analytics",
+          "search_knowledge_base",
+          "trigger_workflow"
+        ]
+      },
+      "settlement": {
+        "runs": 8,
+        "resolution_rate": 1.0,
+        "grounding_rate": 0.0,
+        "intent_accuracy": 1.0,
+        "avg_turns": 1.0,
+        "top_tools": []
+      },
+      "account": {
+        "runs": 8,
+        "resolution_rate": 1.0,
+        "grounding_rate": 1.0,
+        "intent_accuracy": 0.0,
+        "avg_turns": 1.0,
+        "top_tools": [
+          "search_knowledge_base"
+        ]
+      }
+    }
+  },
+  "root_cause": {
+    "root_cause_accuracy": 1.0,
+    "samples": 25
+  },
+  "memory_learning": {
+    "call1_turns": 3,
+    "call2_memory_aware": true,
+    "call2_turns": 1,
+    "turns_saved": 2,
+    "learned_resolution_path": {
+      "resolution_path": "conversational",
+      "success_rate": 1.0,
+      "avg_turns": 1.0,
+      "runs": 1
+    }
+  }
+}

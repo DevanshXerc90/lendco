@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.env
+.venv
+
+# Testing & Caches
+.pytest_cache/
+.pytest_cache
+.cache
+.claude/
+.gemini/
+.idea/
+.vscode/
+
+# Local Generated Data (created via python -m data.generate)
+data/generated/
+data/runtime/
+data/memory.db
+data/memory.db-journal

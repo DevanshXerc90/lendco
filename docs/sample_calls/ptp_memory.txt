@@ -1,0 +1,44 @@
+=== SCENARIO: ptp_memory (borrower BRW00003) ===
+
+***** CALL 1 *****
+AGENT   : Hello Vedant Mann, thank you for calling LendCo support, this is Aarav. How can I help you with your loan today?
+BORROWER: My salary is delayed this month, I will make the payment next Friday.
+AGENT   : When do you expect to be able to make the payment?
+      [intent=promise_to_pay sentiment=neutral tools=[-] asking=ptp_date]
+BORROWER: Friday the 13th of June.
+AGENT   : May I ask the reason for the delay, so I can note it on your account?
+      [intent=promise_to_pay sentiment=neutral tools=[-] asking=ptp_reason]
+BORROWER: salary delay
+AGENT   : Thank you for letting me know. I've noted that you'll pay Rs.14,969 by Friday the 13th of June (reason: salary delay). There's no penalty discussion needed while this commitment is active. I've also scheduled a gentle follow-up around Friday the 13th of June (ref CB00002). Is there anything else I can help with?
+      [intent=promise_to_pay sentiment=neutral tools=[record_commitment,schedule_callback] action=commitment_recorded]
+--- CALL 1 SUMMARY ---
+{
+  "borrower_id": "BRW00003",
+  "intent": "promise_to_pay",
+  "turns": 3,
+  "resolved": true,
+  "resolution_path": "record_commitment->schedule_callback",
+  "actions": [
+    "commitment_recorded"
+  ],
+  "tools_used": [
+    "record_commitment",
+    "schedule_callback"
+  ]
+}
+
+***** CALL 2 (days later, memory persisted) *****
+AGENT   : Hello Vedant Mann, thank you for calling LendCo support, this is Aarav. During our previous conversation, you mentioned that due to salary delay you planned to pay Rs.14,969 by Friday the 13th of June. Were you able to complete that payment?   [memory_aware=True]
+BORROWER: No, not yet, but I will pay it this week.
+AGENT   : No problem, these things happen. When do you now expect to be able to make the payment?
+      [intent=promise_to_pay sentiment=neutral tools=[-]]
+--- CALL 2 SUMMARY ---
+{
+  "borrower_id": "BRW00003",
+  "intent": "promise_to_pay",
+  "turns": 1,
+  "resolved": true,
+  "resolution_path": "conversational",
+  "actions": [],
+  "tools_used": []
+}

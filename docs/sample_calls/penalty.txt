@@ -1,0 +1,19 @@
+=== SCENARIO: penalty  (borrower BRW00009) ===
+AGENT   : Hello Nirja Sibal, thank you for calling LendCo support, this is Aarav. How can I help you with your loan today?
+BORROWER: Why was a penalty charged on my account?
+AGENT   : A total of Rs.0 in penalties has been charged on your account. The most recent relates to the EMI due on 2026-05-21, which was 'auto_debit_failed' (Issuing bank did not respond within timeout window). As per our late-payment policy (04_late_payment_policy, 17_penalty_structure), a 2% penalty applies once a payment crosses the 3-day grace period after the due date. However, this failure looks bank/gateway-caused, which is not your liability - I can raise a reversal for you. Shall I?
+      [intent=penalty_inquiry sentiment=neutral tools=[get_loan_analytics,get_gateway_logs,search_knowledge_base]]
+--- SUMMARY ---
+{
+  "borrower_id": "BRW00009",
+  "intent": "penalty_inquiry",
+  "turns": 1,
+  "resolved": true,
+  "resolution_path": "get_loan_analytics->get_gateway_logs->search_knowledge_base",
+  "actions": [],
+  "tools_used": [
+    "get_loan_analytics",
+    "get_gateway_logs",
+    "search_knowledge_base"
+  ]
+}

@@ -1,0 +1,23 @@
+=== SCENARIO: settlement  (borrower BRW00001) ===
+AGENT   : Hello Aryan Maharaj, thank you for calling LendCo support, this is Aarav. How can I help you with your loan today?
+BORROWER: I'm in financial difficulty and want a one-time settlement.
+AGENT   : Could you share the financial difficulty you're facing? It helps us assess your request.
+      [intent=settlement_request sentiment=neutral tools=[-] asking=hardship_reason]
+BORROWER: I lost my job three months ago and can't keep up with the EMIs.
+AGENT   : I understand, and I've recorded your settlement request (ticket TKTN00001). One important thing to know per our policy (03_settlement_policy, 15_credit_bureau_reporting): a settlement closes the loan as 'settled' rather than 'closed', which is reported to credit bureaus and can lower your credit score. The settlement amount needs credit-committee approval, so I can't quote a figure now, but our team will reach out with the next steps.
+      [intent=settlement_request sentiment=neutral tools=[search_knowledge_base,create_support_ticket] action=ticket_created]
+--- SUMMARY ---
+{
+  "borrower_id": "BRW00001",
+  "intent": "settlement_request",
+  "turns": 2,
+  "resolved": false,
+  "resolution_path": "search_knowledge_base->create_support_ticket",
+  "actions": [
+    "ticket_created"
+  ],
+  "tools_used": [
+    "search_knowledge_base",
+    "create_support_ticket"
+  ]
+}

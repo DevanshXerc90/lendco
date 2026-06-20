@@ -1,0 +1,21 @@
+=== SCENARIO: foreclosure  (borrower BRW00001) ===
+AGENT   : Hello Aryan Maharaj, thank you for calling LendCo support, this is Aarav. How can I help you with your loan today?
+BORROWER: I want to foreclose and close my loan. What's my payoff amount?
+AGENT   : You're eligible to foreclose - you've paid 10 EMIs, past the 6-EMI lock-in. Your outstanding principal is Rs.62,047; the payoff is this plus accrued interest to the foreclosure date and any applicable charges. For floating-rate individual loans foreclosure charges are nil (policy 02_foreclosure_policy, 17_penalty_structure). I've requested a foreclosure statement for you (ref WF00004); it's valid for 7 days.
+      [intent=foreclosure sentiment=neutral tools=[get_loan_analytics,search_knowledge_base,trigger_workflow] action=foreclosure_statement]
+--- SUMMARY ---
+{
+  "borrower_id": "BRW00001",
+  "intent": "foreclosure",
+  "turns": 1,
+  "resolved": true,
+  "resolution_path": "get_loan_analytics->search_knowledge_base->trigger_workflow",
+  "actions": [
+    "foreclosure_statement"
+  ],
+  "tools_used": [
+    "get_loan_analytics",
+    "search_knowledge_base",
+    "trigger_workflow"
+  ]
+}

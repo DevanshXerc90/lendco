@@ -1,0 +1,21 @@
+=== SCENARIO: payment_failure  (borrower BRW00009) ===
+AGENT   : Hello Nirja Sibal, thank you for calling LendCo support, this is Aarav. How can I help you with your loan today?
+BORROWER: My payment failed even though I had enough balance.
+AGENT   : I checked the gateway logs. Your payment on 2026-05-21 failed with code GW-504 - 'Issuing bank did not respond within timeout window'. That's a bank/gateway-side issue, not anything wrong on your end, so no penalty should stick (policy 06_payment_failure_handling). I've generated a fresh payment link for you: https://pay.lendco.example/l/pl00002. You can also wait for the automatic re-presentation in this cycle.
+      [intent=payment_failure sentiment=neutral tools=[get_gateway_logs,search_knowledge_base,create_payment_link] action=payment_link]
+--- SUMMARY ---
+{
+  "borrower_id": "BRW00009",
+  "intent": "payment_failure",
+  "turns": 1,
+  "resolved": true,
+  "resolution_path": "get_gateway_logs->search_knowledge_base->create_payment_link",
+  "actions": [
+    "payment_link"
+  ],
+  "tools_used": [
+    "get_gateway_logs",
+    "search_knowledge_base",
+    "create_payment_link"
+  ]
+}

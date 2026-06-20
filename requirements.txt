@@ -1,0 +1,35 @@
+# ============================================================================
+# CORE (required) — pure-Python / widely-wheeled; works on Python 3.10–3.14.
+# Versions are lower-bounds so pip can resolve wheels for your interpreter.
+# ============================================================================
+fastapi>=0.110
+uvicorn[standard]>=0.27
+httpx>=0.27
+pydantic>=2.6
+python-dotenv>=1.0
+Faker>=24.0
+numpy>=1.26          # used by the pure-numpy TF-IDF RAG (no scikit-learn needed)
+
+# ============================================================================
+# OPTIONAL — everything below has a graceful fallback; install only what you use.
+# ============================================================================
+
+# LLM reasoning (else: deterministic planner)
+anthropic>=0.39
+
+# Neural RAG embeddings (else: built-in TF-IDF). Set EMBEDDINGS_BACKEND=sentence-transformers
+# sentence-transformers>=3.0
+
+# Local voice (else: typed input / printed output)
+# faster-whisper>=1.0     # offline STT
+# pyttsx3>=2.98           # offline TTS (Windows SAPI5 / macOS / espeak)
+# sounddevice>=0.4        # mic capture
+# scipy>=1.11
+
+# Interactive dashboard (else: dependency-free HTML via dashboard/build_report.py)
+# streamlit>=1.36
+# pandas>=2.0
+# plotly>=5.20
+
+# Tests
+pytest>=8.0

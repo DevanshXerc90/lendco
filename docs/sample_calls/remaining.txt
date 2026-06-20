@@ -1,0 +1,17 @@
+=== SCENARIO: remaining  (borrower BRW00001) ===
+AGENT   : Hello Aryan Maharaj, thank you for calling LendCo support, this is Aarav. How can I help you with your loan today?
+BORROWER: How many EMIs are remaining on my loan?
+AGENT   : You've paid 10 of 24 EMIs, so 14 EMIs remain on your Personal Loan. Your next EMI of Rs.4,874 is due on 2026-07-05, and at the current schedule the loan is set to close around 2027-07-30.
+      [intent=remaining_emi sentiment=neutral tools=[get_loan_analytics]]
+--- SUMMARY ---
+{
+  "borrower_id": "BRW00001",
+  "intent": "remaining_emi",
+  "turns": 1,
+  "resolved": true,
+  "resolution_path": "get_loan_analytics",
+  "actions": [],
+  "tools_used": [
+    "get_loan_analytics"
+  ]
+}

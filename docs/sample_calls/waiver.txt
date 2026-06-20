@@ -1,0 +1,28 @@
+=== SCENARIO: waiver  (borrower BRW00009) ===
+AGENT   : Hello Nirja Sibal, thank you for calling LendCo support, this is Aarav. How can I help you with your loan today?
+BORROWER: My payment failed even though I had enough balance.
+AGENT   : I checked the gateway logs. Your payment on 2026-05-21 failed with code GW-504 - 'Issuing bank did not respond within timeout window'. That's a bank/gateway-side issue, not anything wrong on your end, so no penalty should stick (policy 06_payment_failure_handling). I've generated a fresh payment link for you: https://pay.lendco.example/l/pl00003. You can also wait for the automatic re-presentation in this cycle.
+      [intent=payment_failure sentiment=neutral tools=[get_gateway_logs,search_knowledge_base,create_payment_link] action=payment_link]
+BORROWER: Can my penalty be waived because the failure was caused by the bank?
+AGENT   : I've verified the failure on 2026-05-21: code GW-504 ('Issuing bank did not respond within timeout window'), which our system classifies as a bank/gateway failure. Under our penalty-waiver policy (05_penalty_waiver_policy), penalties from system-side failures are not your liability, so you're eligible. I've initiated the reversal (ref WF00003); it will reflect within a couple of working days.
+      [intent=penalty_waiver sentiment=neutral tools=[get_gateway_logs,search_knowledge_base,create_payment_link,trigger_workflow] action=penalty_reversed]
+--- SUMMARY ---
+{
+  "borrower_id": "BRW00009",
+  "intent": "penalty_waiver",
+  "turns": 2,
+  "resolved": true,
+  "resolution_path": "get_gateway_logs->search_knowledge_base->create_payment_link->trigger_workflow",
+  "actions": [
+    "payment_link",
+    "penalty_reversed"
+  ],
+  "tools_used": [
+    "get_gateway_logs",
+    "search_knowledge_base",
+    "create_payment_link",
+    "get_gateway_logs",
+    "search_knowledge_base",
+    "trigger_workflow"
+  ]
+}

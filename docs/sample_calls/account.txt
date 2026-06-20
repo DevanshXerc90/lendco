@@ -1,0 +1,17 @@
+=== SCENARIO: account  (borrower BRW00001) ===
+AGENT   : Hello Aryan Maharaj, thank you for calling LendCo support, this is Aarav. How can I help you with your loan today?
+BORROWER: Can you give me a summary of my loan account?
+AGENT   : Here's what our policy says (01_loan_faqs): **How can I view remaining EMIs?** Remaining EMIs = total tenure minus the number of installments already paid. The agent can compute this from your repayment schedule.
+      [intent=general_faq sentiment=neutral tools=[search_knowledge_base]]
+--- SUMMARY ---
+{
+  "borrower_id": "BRW00001",
+  "intent": "general_faq",
+  "turns": 1,
+  "resolved": true,
+  "resolution_path": "search_knowledge_base",
+  "actions": [],
+  "tools_used": [
+    "search_knowledge_base"
+  ]
+}

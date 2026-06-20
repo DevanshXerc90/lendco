@@ -1,0 +1,46 @@
+# Five independent platform services + a tooling container for the agent/CLI/eval.
+# Usage:  docker compose up --build
+#         docker compose run --rm agent python -m app.cli --scenario waiver
+services:
+  crm:
+    build: .
+    command: uvicorn platforms.crm.app:app --host 0.0.0.0 --port 8101
+    ports: ["8101:8101"]
+    volumes: ["./data/runtime:/app/data/runtime"]
+
+  payments:
+    build: .
+    command: uvicorn platforms.payments.app:app --host 0.0.0.0 --port 8102
+    ports: ["8102:8102"]
+    volumes: ["./data/runtime:/app/data/runtime"]
+
+  support:
+    build: .
+    command: uvicorn platforms.support.app:app --host 0.0.0.0 --port 8103
+    ports: ["8103:8103"]
+    volumes: ["./data/runtime:/app/data/runtime"]
+
+  knowledge:
+    build: .
+    command: uvicorn platforms.knowledge.app:app --host 0.0.0.0 --port 8104
+    ports: ["8104:8104"]
+
+  workflow:
+    build: .
+    command: uvicorn platforms.workflow.app:app --host 0.0.0.0 --port 8105
+    ports: ["8105:8105"]
+    volumes: ["./data/runtime:/app/data/runtime"]
+
+  # Tooling container — not a server. Reaches the platforms by service name.
+  agent:
+    build: .
+    command: ["python", "-m", "app.cli", "--scenario", "waiver"]
+    environment:
+      CRM_URL: http://crm:8101
+      PAYMENTS_URL: http://payments:8102
+      SUPPORT_URL: http://support:8103
+      KNOWLEDGE_URL: http://knowledge:8104
+      WORKFLOW_URL: http://workflow:8105
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    depends_on: [crm, payments, support, knowledge, workflow]
+    volumes: ["./data:/app/data"]
