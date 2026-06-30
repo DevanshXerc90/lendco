@@ -39,30 +39,70 @@ def _post(base: str, path: str, payload: dict):
 
 # --------------------------------------------------------------------------- CRM
 class CRMClient:
-    base = settings.PLATFORM_URLS["crm"]
+    """CRM client with optional HubSpot integration.
+
+    If HUBSPOT_ACCESS_TOKEN is set and CRM_BACKEND="hubspot", uses the real
+    HubSpot CRM API. Otherwise falls back to the mock service or local data.
+    """
+
+    def __init__(self):
+        self._hubspot = None
+        self._mock_base = settings.PLATFORM_URLS["crm"]
+        if settings.CRM_BACKEND == "hubspot" and settings.HUBSPOT_ACCESS_TOKEN:
+            try:
+                from platforms.crm.hubspot_client import HubSpotCRMClient
+                self._hubspot = HubSpotCRMClient()
+                print("[CRM] Backend: HubSpot (real API)")
+            except Exception as e:
+                print(f"[CRM] HubSpot client init failed: {e}; falling back to mock")
+        else:
+            print(f"[CRM] Backend: mock ({self._mock_base})")
 
     def get_borrower(self, borrower_id: str) -> dict | None:
+        if self._hubspot:
+            result = self._hubspot.get_borrower(borrower_id)
+            if result:
+                # Merge with local data for fields HubSpot doesn't have
+                local = next((b for b in _local("borrowers") if b["borrower_id"] == borrower_id), {})
+                merged = {**local, **result}  # HubSpot data takes precedence
+                merged["_source"] = "hubspot"
+                return merged
         try:
-            return _get(self.base, f"/borrowers/{borrower_id}")
+            return _get(self._mock_base, f"/borrowers/{borrower_id}")
         except Exception:
             return next((b for b in _local("borrowers") if b["borrower_id"] == borrower_id), None)
 
     def find_by_phone(self, phone: str) -> dict | None:
+        if self._hubspot:
+            result = self._hubspot.find_by_phone(phone)
+            if result:
+                local = next((b for b in _local("borrowers") if b["borrower_id"] == result.get("borrower_id")), {})
+                merged = {**local, **result}
+                merged["_source"] = "hubspot"
+                return merged
         try:
-            return _get(self.base, "/borrowers", phone=phone)
+            return _get(self._mock_base, "/borrowers", phone=phone)
         except Exception:
             p = phone if phone.startswith("+91") else f"+91{phone}"
             return next((b for b in _local("borrowers") if b["phone"] == p), None)
 
     def get_kyc(self, borrower_id: str) -> dict | None:
+        if self._hubspot:
+            result = self._hubspot.get_kyc(borrower_id)
+            if result:
+                return result
         try:
-            return _get(self.base, f"/borrowers/{borrower_id}/kyc")
+            return _get(self._mock_base, f"/borrowers/{borrower_id}/kyc")
         except Exception:
             b = self.get_borrower(borrower_id)
             return {"borrower_id": borrower_id, **b["kyc"]} if b else None
 
     def update(self, borrower_id: str, field: str, value: str, note: str | None = None) -> dict:
-        return _post_patch(self.base, f"/borrowers/{borrower_id}", {"field": field, "value": value, "note": note})
+        if self._hubspot:
+            result = self._hubspot.update(borrower_id, field, value, note)
+            if result.get("updated"):
+                return result
+        return _post_patch(self._mock_base, f"/borrowers/{borrower_id}", {"field": field, "value": value, "note": note})
 
 
 def _post_patch(base: str, path: str, payload: dict):
@@ -73,23 +113,75 @@ def _post_patch(base: str, path: str, payload: dict):
 
 # ----------------------------------------------------------------------- Payments
 class PaymentsClient:
-    base = settings.PLATFORM_URLS["payments"]
+    """Payments client with optional Stripe or Razorpay integration.
+
+    If STRIPE_SECRET_KEY is set and PAYMENTS_BACKEND="stripe", uses real Stripe.
+    If RAZORPAY_KEY_ID is set and PAYMENTS_BACKEND="razorpay", uses real Razorpay.
+    Otherwise falls back to the mock service or local data.
+    """
+
+    def __init__(self):
+        self._stripe = None
+        self._razorpay = None
+        self._mock_base = settings.PLATFORM_URLS["payments"]
+        
+        if settings.PAYMENTS_BACKEND == "stripe" and settings.STRIPE_SECRET_KEY:
+            try:
+                from platforms.payments.stripe_client import StripePaymentsClient
+                self._stripe = StripePaymentsClient()
+                print("[Payments] Backend: Stripe test mode (real API for payment links)")
+            except Exception as e:
+                print(f"[Payments] Stripe client init failed: {e}; falling back to mock")
+        elif settings.PAYMENTS_BACKEND == "razorpay" and settings.RAZORPAY_KEY_ID:
+            try:
+                from platforms.payments.razorpay_client import RazorpayPaymentsClient
+                self._razorpay = RazorpayPaymentsClient()
+                print("[Payments] Backend: Razorpay test mode (real API for payment links)")
+            except Exception as e:
+                print(f"[Payments] Razorpay client init failed: {e}; falling back to mock")
+        else:
+            print(f"[Payments] Backend: mock ({self._mock_base})")
 
     def history(self, borrower_id: str, status: str | None = None) -> list[dict]:
         try:
-            return _get(self.base, "/payments", borrower_id=borrower_id, status=status)
+            return _get(self._mock_base, "/payments", borrower_id=borrower_id, status=status)
         except Exception:
             items = [p for p in _local("payments") if p["borrower_id"] == borrower_id]
             return [p for p in items if not status or p["status"] == status]
 
     def gateway_logs(self, borrower_id: str) -> list[dict]:
         try:
-            return _get(self.base, "/gateway-logs", borrower_id=borrower_id)
+            return _get(self._mock_base, "/gateway-logs", borrower_id=borrower_id)
         except Exception:
-            return [p for p in _local("payments") if p["borrower_id"] == borrower_id and p["status"] != "success"]
+            # Local fallback: normalize raw payment records to match the
+            # mock service's output format (response_code vs gateway_response_code).
+            return [
+                {
+                    "payment_id": p["payment_id"],
+                    "due_date": p["due_date"],
+                    "status": p["status"],
+                    "method": p.get("method", ""),
+                    "gateway": p.get("gateway", ""),
+                    "response_code": p.get("gateway_response_code", p.get("response_code", "")),
+                    "response_message": p.get("gateway_response_message", p.get("response_message", "")),
+                    "failure_reason": p.get("failure_reason", ""),
+                    "root_cause": p.get("root_cause", ""),
+                    "penalty_charged": p.get("penalty_charged", 0.0),
+                }
+                for p in _local("payments")
+                if p["borrower_id"] == borrower_id and p["status"] != "success"
+            ]
 
     def create_payment_link(self, borrower_id: str, amount: float, purpose: str = "EMI payment") -> dict:
-        return _post(self.base, "/payment-links", {"borrower_id": borrower_id, "amount": amount, "purpose": purpose})
+        if self._stripe:
+            result = self._stripe.create_payment_link(borrower_id, amount, purpose)
+            if result.get("_source") == "stripe":
+                return result
+        if self._razorpay:
+            result = self._razorpay.create_payment_link(borrower_id, amount, purpose)
+            if result.get("_source") == "razorpay":
+                return result
+        return _post(self._mock_base, "/payment-links", {"borrower_id": borrower_id, "amount": amount, "purpose": purpose})
 
 
 # ------------------------------------------------------------------------ Support

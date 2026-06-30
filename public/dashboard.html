@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LendCo — Dashboard & Evaluation</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .dash-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .metric-card {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      text-align: center;
+    }
+    .metric-val {
+      font-size: 2.25rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 0.25rem;
+      background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .metric-lbl {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .chart-container-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    @media (max-width: 768px) {
+      .chart-container-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 0.65rem 0;
+      font-size: 0.85rem;
+    }
+    .bar-lbl {
+      width: 160px;
+      color: var(--muted);
+      text-align: right;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .bar-track {
+      flex: 1;
+      height: 10px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 0.25rem;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 0.25rem;
+      transition: width 0.6s ease;
+    }
+    .bar-val {
+      width: 45px;
+      font-weight: 600;
+      color: #fff;
+      text-align: left;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin-top: 1rem;
+    }
+    th, td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--panel-border);
+    }
+    th {
+      color: var(--muted);
+      font-weight: 600;
+    }
+    tr:hover td {
+      background: rgba(255,255,255,0.01);
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.45rem;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge.success { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+    .badge.warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .badge.danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo-container">
+      <div class="logo-icon">📞</div>
+      <div class="logo-text">LendCo AI</div>
+    </div>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="demo.html">Live Demo</a>
+      <a href="dashboard.html" class="active">Dashboard</a>
+      <a href="/api/docs" target="_blank">API Docs</a>
+    </nav>
+  </header>
+
+  <main style="max-width: 1200px;">
+    <div style="margin-bottom: 2rem;">
+      <h1 style="font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem;">System Dashboard & Evaluation</h1>
+      <p style="color: var(--muted);">Unified monitoring across CRM, Payments, Support, and the autonomous Evaluation harness.</p>
+    </div>
+
+    <!-- Portfolio Statistics -->
+    <div class="dash-grid" id="portfolio-metrics">
+      <div class="metric-card"><div class="metric-val" id="m-borrowers">-</div><div class="metric-lbl">Borrowers</div></div>
+      <div class="metric-card"><div class="metric-val" id="m-loanbook">-</div><div class="metric-lbl">Loan Book</div></div>
+      <div class="metric-card"><div class="metric-val" id="m-interest">-</div><div class="metric-lbl">Avg Interest</div></div>
+      <div class="metric-card"><div class="metric-val" id="m-autodebit">-</div><div class="metric-lbl">Auto-Debit</div></div>
+      <div class="metric-card"><div class="metric-val" id="m-convs">-</div><div class="metric-lbl">Conversations</div></div>
+    </div>
+
+    <!-- Charts / Distributions Grid -->
+    <div class="chart-container-grid">
+      <div class="glass-panel">
+        <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;">Delinquency Distribution</h3>
+        <div id="delinquency-bars">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+      <div class="glass-panel">
+        <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;">Payment Gateway Failure Modes</h3>
+        <div id="failures-bars">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-container-grid">
+      <div class="glass-panel">
+        <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;">Inbound Conversation Intents</h3>
+        <div id="intents-bars">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+      <div class="glass-panel">
+        <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;">Borrower Sentiment</h3>
+        <div id="sentiment-bars">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Evaluation Section -->
+    <div class="glass-panel" style="margin-bottom: 2rem;">
+      <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; border-bottom: 1px solid var(--panel-border); padding-bottom: 0.5rem;">Autonomous Evaluator Results</h3>
+      <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Metrics computed over 64 scenario executions using the NullLLM system state validation harness.</p>
+      
+      <div class="dash-grid" style="margin-bottom: 1.5rem;">
+        <div class="metric-card" style="background: rgba(0,0,0,0.15);"><div class="metric-val" id="e-intent">-</div><div class="metric-lbl">Intent Accuracy</div></div>
+        <div class="metric-card" style="background: rgba(0,0,0,0.15);"><div class="metric-val" id="e-resolution">-</div><div class="metric-lbl">Resolution Rate</div></div>
+        <div class="metric-card" style="background: rgba(0,0,0,0.15);"><div class="metric-val" id="e-grounding">-</div><div class="metric-lbl">RAG Citation Rate</div></div>
+        <div class="metric-card" style="background: rgba(0,0,0,0.15);"><div class="metric-val" id="e-redundant">-</div><div class="metric-lbl">Redundant Questions</div></div>
+        <div class="metric-card" style="background: rgba(0,0,0,0.15);"><div class="metric-val" id="e-rca">-</div><div class="metric-lbl">Root Cause Accuracy</div></div>
+      </div>
+
+      <div style="font-size: 0.9rem; background: rgba(99,102,241,0.05); border: 1px solid rgba(99,102,241,0.15); padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; text-align: center;">
+        🧠 <b>Memory Delta</b>: Call 1 avg: <b id="e-call1">-</b> turns &rarr; Call 2 recall avg: <b id="e-call2">-</b> turn. (Saved <b>2</b> turns due to SQLite commitment tracking).
+      </div>
+
+      <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">Scenario Performance Matrix</h4>
+      <div style="overflow-x: auto;">
+        <table id="scenarios-table">
+          <thead>
+            <tr>
+              <th>Scenario</th>
+              <th>Runs</th>
+              <th>Resolved</th>
+              <th>Grounded (Citations)</th>
+              <th>Intent Acc</th>
+              <th>Avg Turns</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    async function loadDashboard() {
+      try {
+        const res = await fetch('/api/dashboard-data');
+        const data = await res.json();
+
+        // 1. Portfolio metrics
+        const pf = data.portfolio;
+        document.getElementById('m-borrowers').innerText = pf.total_borrowers;
+        document.getElementById('m-loanbook').innerText = '₹' + (pf.total_loan_book / 10000000).toFixed(2) + 'Cr';
+        document.getElementById('m-interest').innerText = pf.avg_interest + '%';
+        document.getElementById('m-autodebit').innerText = pf.auto_debit_pct + '%';
+        document.getElementById('m-convs').innerText = pf.total_conversations;
+
+        // 2. Bar Charts helper
+        function drawBars(containerId, dataset, color = '#4f46e5') {
+          const container = document.getElementById(containerId);
+          container.innerHTML = '';
+          const maxVal = Math.max(...Object.values(dataset));
+          
+          Object.entries(dataset).forEach(([key, val]) => {
+            const pct = maxVal > 0 ? (val / maxVal * 100) : 0;
+            container.innerHTML += `
+              <div class="bar-row">
+                <div class="bar-lbl">${key}</div>
+                <div class="bar-track">
+                  <div class="bar-fill" style="width: ${pct}%; background: ${color};"></div>
+                </div>
+                <div class="bar-val">${val}</div>
+              </div>
+            `;
+          });
+        }
+
+        // Draw Distributions
+        drawBars('delinquency-bars', data.delinquency, '#10b981');
+        drawBars('failures-bars', data.failure_modes, '#ef4444');
+        drawBars('intents-bars', data.intent_distribution, '#4f46e5');
+        drawBars('sentiment-bars', data.sentiment_distribution, '#f59e0b');
+
+        // 3. Render Evaluator Metrics
+        const ev = data.eval;
+        if (ev) {
+          document.getElementById('e-intent').innerText = (ev.intents.intent_accuracy * 100).toFixed(0) + '%';
+          document.getElementById('e-resolution').innerText = (ev.scenarios.overall.resolution_rate * 100).toFixed(0) + '%';
+          document.getElementById('e-grounding').innerText = (ev.scenarios.overall.grounding_rate * 100).toFixed(0) + '%';
+          document.getElementById('e-redundant').innerText = (ev.scenarios.overall.redundant_question_rate * 100).toFixed(0) + '%';
+          document.getElementById('e-rca').innerText = (ev.root_cause.root_cause_accuracy * 100).toFixed(0) + '%';
+          
+          document.getElementById('e-call1').innerText = ev.memory_learning.call1_turns;
+          document.getElementById('e-call2').innerText = ev.memory_learning.call2_turns;
+
+          // Per-Scenario performance table
+          const tbody = document.querySelector('#scenarios-table tbody');
+          tbody.innerHTML = '';
+          Object.entries(ev.scenarios.per_scenario).forEach(([name, s]) => {
+            tbody.innerHTML += `
+              <tr>
+                <td style="font-weight: 600;">${name.toUpperCase()}</td>
+                <td>${s.runs}</td>
+                <td><span class="badge success">${(s.resolution_rate * 100).toFixed(0)}%</span></td>
+                <td><span class="badge ${s.grounding_rate > 0.5 ? 'success' : 'warning'}">${(s.grounding_rate * 100).toFixed(0)}%</span></td>
+                <td><span class="badge ${s.intent_accuracy > 0.9 ? 'success' : 'danger'}">${(s.intent_accuracy * 100).toFixed(0)}%</span></td>
+                <td style="font-weight:600;">${s.avg_turns.toFixed(1)}</td>
+              </tr>
+            `;
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load dashboard data', err);
+      }
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>

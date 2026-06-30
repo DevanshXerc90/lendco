@@ -28,6 +28,28 @@ STT_BACKEND = os.getenv("STT_BACKEND", "text")
 TTS_BACKEND = os.getenv("TTS_BACKEND", "print")
 WHISPER_MODEL = os.getenv("WHISPER_MODEL", "base.en")
 
+# --- Real API integrations (optional — falls back to mock services) ---
+HUBSPOT_ACCESS_TOKEN = os.getenv("HUBSPOT_ACCESS_TOKEN", "").strip()
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "").strip()
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "").strip()
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "").strip()
+
+# Backend selection: "hubspot" | "mock" (auto-detect from key presence)
+CRM_BACKEND = os.getenv("CRM_BACKEND", "hubspot" if HUBSPOT_ACCESS_TOKEN else "mock")
+
+# Backend selection: "stripe" | "razorpay" | "mock" (auto-detect from key presence)
+def _detect_payments_backend() -> str:
+    override = os.getenv("PAYMENTS_BACKEND", "").strip()
+    if override in ("stripe", "razorpay", "mock"):
+        return override
+    if STRIPE_SECRET_KEY:
+        return "stripe"
+    if RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET:
+        return "razorpay"
+    return "mock"
+
+PAYMENTS_BACKEND = _detect_payments_backend()
+
 # --- Platform service URLs ---
 PLATFORM_URLS = {
     "crm": os.getenv("CRM_URL", "http://127.0.0.1:8101"),

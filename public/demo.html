@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LendCo — Live Agent Demo</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .demo-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr 340px;
+      gap: 1.5rem;
+      margin-top: 1rem;
+      height: calc(100vh - 160px);
+      min-height: 550px;
+    }
+    @media (max-width: 1024px) {
+      .demo-grid {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+    }
+    .left-panel, .right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      overflow-y: auto;
+      max-height: 100%;
+    }
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 1rem;
+      overflow: hidden;
+    }
+    .chat-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .chat-messages {
+      flex: 1;
+      padding: 1.5rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .chat-input-area {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--panel-border);
+      display: flex;
+      gap: 0.75rem;
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .chat-input {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--panel-border);
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      color: #fff;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+    .chat-input:focus {
+      border-color: var(--accent-light);
+    }
+    .message {
+      max-width: 80%;
+      padding: 0.85rem 1.25rem;
+      border-radius: 0.75rem;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    .message.user {
+      align-self: flex-end;
+      background: var(--accent);
+      color: #fff;
+      border-bottom-right-radius: 0.25rem;
+    }
+    .message.agent {
+      align-self: flex-start;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--panel-border);
+      color: #fff;
+      border-bottom-left-radius: 0.25rem;
+    }
+    .message.system {
+      align-self: center;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--panel-border);
+      color: var(--muted);
+      font-size: 0.85rem;
+      padding: 0.5rem 1rem;
+      border-radius: 2rem;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge.success { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+    .badge.warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .badge.danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+    
+    .scenario-btn {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--panel-border);
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: #fff;
+    }
+    .scenario-btn:hover {
+      background: rgba(79, 70, 229, 0.1);
+      border-color: rgba(79, 70, 229, 0.3);
+    }
+    
+    .meta-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+    }
+    .meta-item {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      padding-bottom: 0.35rem;
+    }
+    .meta-label { color: var(--muted); }
+    .meta-val { font-weight: 500; }
+    
+    .tool-pill {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      padding: 0.15rem 0.45rem;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      color: var(--accent-light);
+      margin: 0.15rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo-container">
+      <div class="logo-icon">📞</div>
+      <div class="logo-text">LendCo AI</div>
+    </div>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="demo.html" class="active">Live Demo</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="/api/docs" target="_blank">API Docs</a>
+    </nav>
+  </header>
+
+  <main style="max-width: 1400px;">
+    <div class="demo-grid">
+      <!-- Left Panel: Scenarios & Borrowers -->
+      <div class="left-panel">
+        <div class="glass-panel" style="padding: 1.25rem;">
+          <h3 style="font-size: 1rem; margin-bottom: 0.75rem;">1. Select Borrower</h3>
+          <select id="borrower-select" style="width:100%; background: #000; color: #fff; border: 1px solid var(--panel-border); padding: 0.6rem; border-radius: 0.5rem; outline: none; cursor: pointer;">
+            <option value="">Loading borrowers...</option>
+          </select>
+        </div>
+
+        <div class="glass-panel" style="padding: 1.25rem; flex: 1; display:flex; flex-direction:column; gap:0.75rem;">
+          <h3 style="font-size: 1rem; margin-bottom: 0.25rem;">2. Preset Scenarios</h3>
+          <p style="color: var(--muted); font-size: 0.8rem; margin-bottom: 0.5rem;">Run automated script conversations demonstrating specific test capabilities.</p>
+          <div id="scenarios-list" style="display:flex; flex-direction:column; gap:0.6rem; overflow-y:auto; flex:1;">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Center: Interactive Chat Interface -->
+      <div class="chat-container">
+        <div class="chat-header">
+          <div>
+            <span id="active-borrower-name" style="font-weight: 600; font-size: 1.05rem;">Select a borrower to start</span>
+            <div id="active-borrower-id" style="font-size: 0.8rem; color: var(--muted);"></div>
+          </div>
+          <div>
+            <span id="delinquency-badge" class="badge">None</span>
+          </div>
+        </div>
+
+        <div id="chat-messages" class="chat-messages">
+          <div class="message system">Pick a borrower on the left, then type a question or select a preset scenario script to execute.</div>
+        </div>
+
+        <div class="chat-input-area">
+          <input type="text" id="chat-input" class="chat-input" placeholder="Type a message to the agent..." disabled>
+          <button id="send-btn" class="btn" style="padding: 0.75rem 1.25rem;" disabled>Send</button>
+        </div>
+      </div>
+
+      <!-- Right Panel: Context Engine Audit & Diagnostic Trace -->
+      <div class="right-panel">
+        <div class="glass-panel" style="padding: 1.25rem;">
+          <h3 style="font-size: 1rem; margin-bottom: 0.75rem;">Context Engine Analytics</h3>
+          <div id="analytics-loader" style="font-size:0.85rem; color: var(--muted);">No borrower context loaded.</div>
+          <div id="analytics-data" class="meta-list" style="display:none;">
+            <div class="meta-item"><span class="meta-label">Loan Type</span><span id="meta-loan-type" class="meta-val">-</span></div>
+            <div class="meta-item"><span class="meta-label">Original Loan</span><span id="meta-loan-amount" class="meta-val">-</span></div>
+            <div class="meta-item"><span class="meta-label">Interest Rate</span><span id="meta-interest-rate" class="meta-val">-</span></div>
+            <div class="meta-item"><span class="meta-label">EMI Amount</span><span id="meta-emi" class="meta-val">-</span></div>
+            <div class="meta-item"><span class="meta-label">EMIs Remaining</span><span id="meta-emis-rem" class="meta-val">-</span></div>
+            <div class="meta-item"><span class="meta-label">Next Due Date</span><span id="meta-due" class="meta-val">-</span></div>
+            <div class="meta-item"><span class="meta-label">Overdue Principal</span><span id="meta-overdue" class="meta-val">-</span></div>
+            <div class="meta-item"><span class="meta-label">Penalties Charged</span><span id="meta-penalties" class="meta-val">-</span></div>
+            <div class="meta-item"><span class="meta-label">Auto-Debit Status</span><span id="meta-autodebit" class="meta-val">-</span></div>
+          </div>
+        </div>
+
+        <div class="glass-panel" style="padding: 1.25rem; flex: 1;">
+          <h3 style="font-size: 1rem; margin-bottom: 0.75rem;">Agent Diagnostic Trace</h3>
+          <div id="trace-loader" style="font-size:0.85rem; color: var(--muted);">Trace will populate as you chat.</div>
+          <div id="trace-data" class="meta-list" style="display:none; gap: 0.85rem;">
+            <div>
+              <span class="meta-label" style="display:block; margin-bottom:0.25rem;">Classified Intent:</span>
+              <span id="trace-intent" class="badge success" style="font-size:0.8rem; text-transform:none;">-</span>
+            </div>
+            <div>
+              <span class="meta-label" style="display:block; margin-bottom:0.25rem;">Action Executed:</span>
+              <span id="trace-action" class="badge warning" style="font-size:0.8rem; text-transform:none;">-</span>
+            </div>
+            <div>
+              <span class="meta-label" style="display:block; margin-bottom:0.25rem;">Tools Invoked:</span>
+              <div id="trace-tools">-</div>
+            </div>
+            <div>
+              <span class="meta-label" style="display:block; margin-bottom:0.25rem;">Knowledge Citations:</span>
+              <div id="trace-citations" style="font-size:0.8rem; color:var(--muted); line-height:1.4;">-</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const borrowerSelect = document.getElementById('borrower-select');
+    const scenariosList = document.getElementById('scenarios-list');
+    const chatMessages = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const activeName = document.getElementById('active-borrower-name');
+    const activeId = document.getElementById('active-borrower-id');
+    const delinquencyBadge = document.getElementById('delinquency-badge');
+    
+    const metaLoanType = document.getElementById('meta-loan-type');
+    const metaLoanAmt = document.getElementById('meta-loan-amount');
+    const metaInterest = document.getElementById('meta-interest-rate');
+    const metaEmi = document.getElementById('meta-emi');
+    const metaEmisRem = document.getElementById('meta-emis-rem');
+    const metaDue = document.getElementById('meta-due');
+    const metaOverdue = document.getElementById('meta-overdue');
+    const metaPenalties = document.getElementById('meta-penalties');
+    const metaAutoDebit = document.getElementById('meta-autodebit');
+    
+    const analyticsLoader = document.getElementById('analytics-loader');
+    const analyticsData = document.getElementById('analytics-data');
+    const traceLoader = document.getElementById('trace-loader');
+    const traceData = document.getElementById('trace-data');
+    const traceIntent = document.getElementById('trace-intent');
+    const traceAction = document.getElementById('trace-action');
+    const traceTools = document.getElementById('trace-tools');
+    const traceCitations = document.getElementById('trace-citations');
+
+    let currentBorrower = '';
+
+    // Initialize API elements
+    async function init() {
+      try {
+        // Load borrowers
+        const bRes = await fetch('/api/borrowers');
+        const borrowers = await bRes.json();
+        borrowerSelect.innerHTML = '<option value="">-- Choose Borrower --</option>';
+        borrowers.forEach(b => {
+          borrowerSelect.innerHTML += `<option value="${b.borrower_id}">${b.borrower_id} - ${b.name} (${b.delinquency_status})</option>`;
+        });
+
+        // Load preset scenarios
+        const sRes = await fetch('/api/scenarios');
+        const scenarios = await sRes.json();
+        scenariosList.innerHTML = '';
+        scenarios.forEach(s => {
+          scenariosList.innerHTML += `
+            <button class="scenario-btn" onclick="triggerScenario('${s.id}')">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight:600; font-size:0.9rem;">${s.icon} ${s.name}</span>
+                <span style="font-size:0.7rem; color:var(--muted)">Run Script</span>
+              </div>
+              <div style="font-size:0.75rem; color:var(--muted); margin-top:0.25rem;">${s.description}</div>
+            </button>
+          `;
+        });
+      } catch (err) {
+        console.error('Init error', err);
+      }
+    }
+
+    borrowerSelect.addEventListener('change', async (e) => {
+      const bid = e.target.value;
+      if (!bid) return resetUI();
+      loadBorrower(bid);
+    });
+
+    async function loadBorrower(bid) {
+      currentBorrower = bid;
+      chatMessages.innerHTML = '';
+      
+      // Enable text inputs
+      chatInput.disabled = false;
+      sendBtn.disabled = false;
+
+      // Update name & ID headers
+      const bRes = await fetch(`/api/borrowers/${bid}`);
+      const b = await bRes.json();
+      activeName.innerText = b.name;
+      activeId.innerText = bid;
+      
+      // Update delinquency status badge
+      delinquencyBadge.className = 'badge';
+      if (b.delinquency_status === 'current') {
+        delinquencyBadge.classList.add('success');
+        delinquencyBadge.innerText = 'Current';
+      } else if (b.delinquency_status.includes('dpd_90_plus')) {
+        delinquencyBadge.classList.add('danger');
+        delinquencyBadge.innerText = b.delinquency_status;
+      } else {
+        delinquencyBadge.classList.add('warning');
+        delinquencyBadge.innerText = b.delinquency_status;
+      }
+
+      // Load Context Engine Analytics
+      analyticsLoader.innerText = 'Fetching context...';
+      try {
+        const aRes = await fetch(`/api/analytics/${bid}`);
+        const data = await aRes.json();
+        const a = data.analytics;
+        metaLoanType.innerText = a.loan_type;
+        metaLoanAmt.innerText = 'Rs. ' + a.loan_amount.toLocaleString();
+        metaInterest.innerText = a.interest_rate + ' %';
+        metaEmi.innerText = 'Rs. ' + a.emi_amount.toLocaleString();
+        metaEmisRem.innerText = a.installments_remaining;
+        metaDue.innerText = a.next_due_date || 'N/A';
+        metaOverdue.innerText = 'Rs. ' + a.overdue_amount.toLocaleString();
+        metaPenalties.innerText = 'Rs. ' + a.total_penalties.toLocaleString();
+        metaAutoDebit.innerText = a.auto_debit ? 'ENABLED' : 'DISABLED';
+        
+        analyticsLoader.style.display = 'none';
+        analyticsData.style.display = 'flex';
+      } catch (err) {
+        analyticsLoader.innerText = 'Failed to load context analytics.';
+      }
+
+      // Add system greeting
+      appendMessage('system', 'Call initialized. Dialing inbound...');
+      try {
+        // Run empty chat call to get agent's opener greeting
+        const chatRes = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ borrower_id: bid, message: '' })
+        });
+        const resp = await chatRes.json();
+        if (resp.greeting) {
+          appendMessage('agent', resp.greeting);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function resetUI() {
+      currentBorrower = '';
+      activeName.innerText = 'Select a borrower to start';
+      activeId.innerText = '';
+      delinquencyBadge.className = 'badge';
+      delinquencyBadge.innerText = 'None';
+      chatInput.disabled = true;
+      sendBtn.disabled = true;
+      analyticsData.style.display = 'none';
+      analyticsLoader.style.display = 'block';
+      analyticsLoader.innerText = 'No borrower context loaded.';
+      traceData.style.display = 'none';
+      traceLoader.style.display = 'block';
+      traceLoader.innerText = 'Trace will populate as you chat.';
+      chatMessages.innerHTML = '<div class="message system">Pick a borrower on the left, then type a question or select a preset scenario script to execute.</div>';
+    }
+
+    function appendMessage(sender, text) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `message ${sender}`;
+      msgDiv.innerText = text;
+      chatMessages.appendChild(msgDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function renderTrace(intent, action, tools, grounding) {
+      traceLoader.style.display = 'none';
+      traceData.style.display = 'flex';
+      traceIntent.innerText = intent || 'N/A';
+      traceAction.innerText = action || 'N/A';
+      
+      traceTools.innerHTML = '';
+      if (tools && tools.length > 0) {
+        tools.forEach(t => {
+          traceTools.innerHTML += `<span class="tool-pill">${t}</span>`;
+        });
+      } else {
+        traceTools.innerText = 'None';
+      }
+
+      traceCitations.innerHTML = '';
+      if (grounding && grounding.length > 0) {
+        grounding.forEach(c => {
+          traceCitations.innerHTML += `
+            <div style="margin-bottom:0.4rem; padding-bottom:0.4rem; border-bottom:1px solid rgba(255,255,255,0.02)">
+              <div style="font-weight:600; color:var(--success)">📝 Document: ${c.doc_id}</div>
+              <div style="margin-top:0.15rem; color:#a5b4fc; font-style:italic;">"${c.matched_sentence}"</div>
+            </div>
+          `;
+        });
+      } else {
+        traceCitations.innerText = 'No policy document retrieved.';
+      }
+    }
+
+    // Send Message
+    async function sendMessage() {
+      const msg = chatInput.value.trim();
+      if (!msg || !currentBorrower) return;
+      
+      chatInput.value = '';
+      appendMessage('user', msg);
+      
+      try {
+        const chatRes = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ borrower_id: currentBorrower, message: msg })
+        });
+        const resp = await chatRes.json();
+        appendMessage('agent', resp.text);
+        renderTrace(resp.intent, resp.action, resp.tools_used, resp.grounding);
+      } catch (err) {
+        appendMessage('system', 'Error: failed to receive agent response.');
+      }
+    }
+
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+    sendBtn.addEventListener('click', sendMessage);
+
+    // Preset Scenario execution
+    async function triggerScenario(sid) {
+      resetUI();
+      chatMessages.innerHTML = '';
+      appendMessage('system', `Loading preset script for scenario: "${sid}"...`);
+      
+      try {
+        const res = await fetch('/api/scenario', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenario: sid })
+        });
+        const data = await res.json();
+        
+        // Select the borrower automatically
+        borrowerSelect.value = data.borrower_id;
+        loadBorrower(data.borrower_id);
+        
+        // Clear automatic messages and replay the canned turns sequentially
+        setTimeout(() => {
+          chatMessages.innerHTML = '';
+          appendMessage('system', `Simulating scripted call context: ${sid.toUpperCase()}`);
+          appendMessage('agent', data.greeting || "Hello, thank you for calling. How can I help you today?");
+          
+          if (sid === 'ptp_memory') {
+            // Replay call 1 turns
+            appendMessage('system', `[CALL 1 INTENSITY STARTS]`);
+            let delay = 1000;
+            data.call1.turns.forEach(t => {
+              setTimeout(() => {
+                appendMessage('user', t.user);
+              }, delay);
+              delay += 1200;
+              setTimeout(() => {
+                appendMessage('agent', t.agent);
+                renderTrace(t.intent, t.action, t.tools, []);
+              }, delay);
+              delay += 1200;
+            });
+
+            // Replay call 2 turns
+            setTimeout(() => {
+              appendMessage('system', `[CALL 1 ENDS] - Hanging up and updating SQLite MemoryDB...`);
+            }, delay + 800);
+            
+            delay += 2500;
+            setTimeout(() => {
+              appendMessage('system', `[CALL 2 STARTS] - Dialing back in...`);
+              appendMessage('agent', data.call2.greeting);
+            }, delay);
+            
+            delay += 1500;
+            data.call2.turns.forEach(t => {
+              setTimeout(() => {
+                appendMessage('user', t.user);
+              }, delay);
+              delay += 1200;
+              setTimeout(() => {
+                appendMessage('agent', t.agent);
+                renderTrace(t.intent, t.action, t.tools, []);
+              }, delay);
+              delay += 1200;
+            });
+          } else {
+            // Single-call scenarios
+            let delay = 1000;
+            data.turns.forEach(t => {
+              setTimeout(() => {
+                appendMessage('user', t.user);
+              }, delay);
+              delay += 1200;
+              setTimeout(() => {
+                appendMessage('agent', t.agent);
+                renderTrace(t.intent, t.action, t.tools, t.grounding || []);
+              }, delay);
+              delay += 1200;
+            });
+          }
+        }, 1500);
+
+      } catch (err) {
+        console.error(err);
+        appendMessage('system', 'Error running preset scenario script.');
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

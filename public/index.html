@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LendCo — Agentic Inbound Voice Agent</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="logo-container">
+      <div class="logo-icon">📞</div>
+      <div class="logo-text">LendCo AI</div>
+    </div>
+    <nav>
+      <a href="index.html" class="active">Home</a>
+      <a href="demo.html">Live Demo</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="/api/docs" target="_blank">API Docs</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>The Next Generation of Loan Servicing</h1>
+      <p>An intelligent inbound agent that acts like a senior loan representative. It aggregates data across 5 systems, diagnoses information gaps, cites policy documents, and remembers borrower details across calls.</p>
+      <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+        <a href="demo.html" class="btn">🚀 Try Live Chat Demo</a>
+        <a href="dashboard.html" class="btn btn-secondary">📊 View Analytics Dashboard</a>
+      </div>
+    </section>
+
+    <div class="glass-panel" style="margin-top: 4rem;">
+      <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem; text-align: center;">How the Multi-Agent System Operates</h2>
+      <div style="display: flex; flex-direction: column; gap: 1.5rem; max-width: 900px; margin: 0 auto;">
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--panel-border); padding: 1.5rem; border-radius: 0.75rem; display: flex; gap: 1.5rem; align-items: flex-start;">
+          <div style="font-size: 1.5rem; background: rgba(99, 102, 241, 0.1); border-radius: 0.5rem; width: 3rem; height: 3rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">🌐</div>
+          <div>
+            <h4 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem;">1. Aggregated Context</h4>
+            <p style="color: var(--muted); font-size: 0.95rem;">On call entry, the system pulls data from 5 independent APIs: CRM (e.g. HubSpot), Payments (e.g. Razorpay), Support Tickets, Confluence/Notion KB, and Workflows. It synthesizes an immediate loan status representation.</p>
+          </div>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--panel-border); padding: 1.5rem; border-radius: 0.75rem; display: flex; gap: 1.5rem; align-items: flex-start;">
+          <div style="font-size: 1.5rem; background: rgba(16, 185, 129, 0.1); border-radius: 0.5rem; width: 3rem; height: 3rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">🔍</div>
+          <div>
+            <h4 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem;">2. Gap Analysis (Diagnosis)</h4>
+            <p style="color: var(--muted); font-size: 0.95rem;">Instead of a static script, it dynamically analyzes what data points are missing for the borrower's intent. If key info is missing, it asks one targeted question; if all fields are known, it executes tool actions directly.</p>
+          </div>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--panel-border); padding: 1.5rem; border-radius: 0.75rem; display: flex; gap: 1.5rem; align-items: flex-start;">
+          <div style="font-size: 1.5rem; background: rgba(245, 158, 11, 0.1); border-radius: 0.5rem; width: 3rem; height: 3rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">🧠</div>
+          <div>
+            <h4 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem;">3. SQLite Persistence Memory</h4>
+            <p style="color: var(--muted); font-size: 0.95rem;">Continuous learning: The agent remembers preferences, prior conversations, and promise-to-pay commitments. Call 2 references prior conversations, bypassing duplicate questions to resolve disputes in record time.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="features-grid">
+      <div class="glass-panel feature-card">
+        <div class="feature-icon">🛡️</div>
+        <h3>Policy Grounded RAG</h3>
+        <p>Every policy statement has strict references. The agent queries corporate knowledge base documents (22 articles covered) and attaches citations directly to the conversation turn.</p>
+      </div>
+
+      <div class="glass-panel feature-card">
+        <div class="feature-icon">⛓️</div>
+        <h3>Live CRM & Payments API</h3>
+        <p>Fully integrated with HubSpot CRM and Razorpay API to fetch customer profiles and generate active, test-mode payment links dynamically on waiver validation.</p>
+      </div>
+
+      <div class="glass-panel feature-card">
+        <div class="feature-icon">📈</div>
+        <h3>Rigorous Evaluation Harness</h3>
+        <p>The system evaluates intent accuracy, grounding citations, resolution rates, and turns saved on memory recalls automatically via a 64-scenario test harness.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 LendCo Loan Servicing Agent. Fully functional Serverless prototype.</p>
+  </footer>
+</body>
+</html>

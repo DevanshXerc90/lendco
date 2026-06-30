@@ -1,0 +1,3538 @@
+[
+  {
+    "conversation_id": "CONV00001",
+    "borrower_id": "BRW00011",
+    "channel": "voice",
+    "timestamp": "2026-01-29T20:00:00",
+    "intent": "settlement_request",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "follow_up_needed",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00002",
+    "borrower_id": "BRW00083",
+    "channel": "voice",
+    "timestamp": "2026-04-06T12:00:00",
+    "intent": "remaining_emi",
+    "sentiment": "anxious",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "How many EMIs are remaining on my loan?"
+      },
+      {
+        "role": "agent",
+        "text": "Let me check your loan tenure and due schedule."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Tamil"
+  },
+  {
+    "conversation_id": "CONV00003",
+    "borrower_id": "BRW00038",
+    "channel": "chat",
+    "timestamp": "2026-04-28T16:00:00",
+    "intent": "settlement_request",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my education loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00004",
+    "borrower_id": "BRW00112",
+    "channel": "chat",
+    "timestamp": "2025-12-19T08:00:00",
+    "intent": "foreclosure",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my home loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00005",
+    "borrower_id": "BRW00014",
+    "channel": "chat",
+    "timestamp": "2026-04-22T11:00:00",
+    "intent": "interest_paid",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my home loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "follow_up_needed",
+    "promise_to_pay": null,
+    "preferred_language": "Telugu"
+  },
+  {
+    "conversation_id": "CONV00006",
+    "borrower_id": "BRW00026",
+    "channel": "chat",
+    "timestamp": "2026-03-16T08:00:00",
+    "intent": "settlement_request",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my home loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "escalated",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00007",
+    "borrower_id": "BRW00095",
+    "channel": "chat",
+    "timestamp": "2026-05-10T02:00:00",
+    "intent": "foreclosure",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my education loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00008",
+    "borrower_id": "BRW00019",
+    "channel": "chat",
+    "timestamp": "2026-03-18T16:00:00",
+    "intent": "payment_failure",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Marathi"
+  },
+  {
+    "conversation_id": "CONV00009",
+    "borrower_id": "BRW00008",
+    "channel": "chat",
+    "timestamp": "2026-02-17T19:00:00",
+    "intent": "promise_to_pay",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "My salary delay means I cannot pay right now. I'll pay after my salary credits."
+      },
+      {
+        "role": "agent",
+        "text": "I understand. When do you expect to make the payment?"
+      },
+      {
+        "role": "borrower",
+        "text": "I should be able to pay the EMI of Rs.9349 by 2026-02-26."
+      },
+      {
+        "role": "agent",
+        "text": "Noted. I've recorded your commitment and we'll follow up gently."
+      }
+    ],
+    "resolved": false,
+    "outcome": "escalated",
+    "promise_to_pay": {
+      "date": "2026-02-26",
+      "amount": 9348.52,
+      "reason": "salary delay",
+      "kept": null
+    },
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00010",
+    "borrower_id": "BRW00082",
+    "channel": "chat",
+    "timestamp": "2026-05-18T06:00:00",
+    "intent": "penalty_inquiry",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "Why was a penalty charged on my account?"
+      },
+      {
+        "role": "agent",
+        "text": "I'll review your payment timeline and the late-payment policy."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00011",
+    "borrower_id": "BRW00112",
+    "channel": "voice",
+    "timestamp": "2026-02-20T18:00:00",
+    "intent": "foreclosure",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my home loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "follow_up_needed",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00012",
+    "borrower_id": "BRW00012",
+    "channel": "chat",
+    "timestamp": "2026-03-13T01:00:00",
+    "intent": "settlement_request",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my personal loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Tamil"
+  },
+  {
+    "conversation_id": "CONV00013",
+    "borrower_id": "BRW00062",
+    "channel": "chat",
+    "timestamp": "2026-01-21T12:00:00",
+    "intent": "foreclosure",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "escalated",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00014",
+    "borrower_id": "BRW00089",
+    "channel": "voice",
+    "timestamp": "2026-03-01T10:00:00",
+    "intent": "general_faq",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my home loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "escalated",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00015",
+    "borrower_id": "BRW00086",
+    "channel": "chat",
+    "timestamp": "2026-01-02T06:00:00",
+    "intent": "general_faq",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my personal loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "escalated",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00016",
+    "borrower_id": "BRW00115",
+    "channel": "chat",
+    "timestamp": "2026-05-01T19:00:00",
+    "intent": "foreclosure",
+    "sentiment": "anxious",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00017",
+    "borrower_id": "BRW00034",
+    "channel": "chat",
+    "timestamp": "2026-06-07T20:00:00",
+    "intent": "account_info",
+    "sentiment": "angry",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "follow_up_needed",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00018",
+    "borrower_id": "BRW00075",
+    "channel": "voice",
+    "timestamp": "2026-05-30T04:00:00",
+    "intent": "interest_paid",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00019",
+    "borrower_id": "BRW00077",
+    "channel": "voice",
+    "timestamp": "2026-04-13T23:00:00",
+    "intent": "settlement_request",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00020",
+    "borrower_id": "BRW00048",
+    "channel": "chat",
+    "timestamp": "2026-06-04T01:00:00",
+    "intent": "promise_to_pay",
+    "sentiment": "anxious",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "My salary delay means I cannot pay right now. I'll pay after my salary credits."
+      },
+      {
+        "role": "agent",
+        "text": "I understand. When do you expect to make the payment?"
+      },
+      {
+        "role": "borrower",
+        "text": "I should be able to pay the EMI of Rs.11259 by 2026-06-23."
+      },
+      {
+        "role": "agent",
+        "text": "Noted. I've recorded your commitment and we'll follow up gently."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": {
+      "date": "2026-06-23",
+      "amount": 11259.14,
+      "reason": "salary delay",
+      "kept": null
+    },
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00021",
+    "borrower_id": "BRW00053",
+    "channel": "chat",
+    "timestamp": "2026-03-09T23:00:00",
+    "intent": "settlement_request",
+    "sentiment": "anxious",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my home loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00022",
+    "borrower_id": "BRW00015",
+    "channel": "voice",
+    "timestamp": "2026-02-10T21:00:00",
+    "intent": "penalty_inquiry",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "Why was a penalty charged on my account?"
+      },
+      {
+        "role": "agent",
+        "text": "I'll review your payment timeline and the late-payment policy."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Bengali"
+  },
+  {
+    "conversation_id": "CONV00023",
+    "borrower_id": "BRW00070",
+    "channel": "chat",
+    "timestamp": "2026-03-03T01:00:00",
+    "intent": "settlement_request",
+    "sentiment": "anxious",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my home loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00024",
+    "borrower_id": "BRW00082",
+    "channel": "voice",
+    "timestamp": "2025-12-10T15:00:00",
+    "intent": "penalty_waiver",
+    "sentiment": "angry",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my personal loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "follow_up_needed",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00025",
+    "borrower_id": "BRW00104",
+    "channel": "voice",
+    "timestamp": "2026-05-16T14:00:00",
+    "intent": "interest_paid",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "escalated",
+    "promise_to_pay": null,
+    "preferred_language": "Telugu"
+  },
+  {
+    "conversation_id": "CONV00026",
+    "borrower_id": "BRW00097",
+    "channel": "voice",
+    "timestamp": "2026-01-20T07:00:00",
+    "intent": "general_faq",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Tamil"
+  },
+  {
+    "conversation_id": "CONV00027",
+    "borrower_id": "BRW00086",
+    "channel": "chat",
+    "timestamp": "2026-02-21T04:00:00",
+    "intent": "penalty_waiver",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my personal loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00028",
+    "borrower_id": "BRW00015",
+    "channel": "chat",
+    "timestamp": "2026-02-08T07:00:00",
+    "intent": "payment_failure",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "escalated",
+    "promise_to_pay": null,
+    "preferred_language": "Bengali"
+  },
+  {
+    "conversation_id": "CONV00029",
+    "borrower_id": "BRW00106",
+    "channel": "chat",
+    "timestamp": "2026-06-06T23:00:00",
+    "intent": "settlement_request",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00030",
+    "borrower_id": "BRW00113",
+    "channel": "chat",
+    "timestamp": "2026-03-21T21:00:00",
+    "intent": "penalty_waiver",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Marathi"
+  },
+  {
+    "conversation_id": "CONV00031",
+    "borrower_id": "BRW00005",
+    "channel": "chat",
+    "timestamp": "2026-06-02T06:00:00",
+    "intent": "remaining_emi",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "How many EMIs are remaining on my loan?"
+      },
+      {
+        "role": "agent",
+        "text": "Let me check your loan tenure and due schedule."
+      }
+    ],
+    "resolved": false,
+    "outcome": "escalated",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00032",
+    "borrower_id": "BRW00074",
+    "channel": "chat",
+    "timestamp": "2026-04-07T17:00:00",
+    "intent": "settlement_request",
+    "sentiment": "angry",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00033",
+    "borrower_id": "BRW00107",
+    "channel": "voice",
+    "timestamp": "2026-01-11T21:00:00",
+    "intent": "remaining_emi",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "How many EMIs are remaining on my loan?"
+      },
+      {
+        "role": "agent",
+        "text": "Let me check your loan tenure and due schedule."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00034",
+    "borrower_id": "BRW00052",
+    "channel": "chat",
+    "timestamp": "2026-01-27T05:00:00",
+    "intent": "promise_to_pay",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "My medical emergency means I cannot pay right now. I'll pay after my salary credits."
+      },
+      {
+        "role": "agent",
+        "text": "I understand. When do you expect to make the payment?"
+      },
+      {
+        "role": "borrower",
+        "text": "I should be able to pay the EMI of Rs.27538 by 2026-02-02."
+      },
+      {
+        "role": "agent",
+        "text": "Noted. I've recorded your commitment and we'll follow up gently."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": {
+      "date": "2026-02-02",
+      "amount": 27537.63,
+      "reason": "medical emergency",
+      "kept": null
+    },
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00035",
+    "borrower_id": "BRW00108",
+    "channel": "voice",
+    "timestamp": "2026-01-18T05:00:00",
+    "intent": "penalty_waiver",
+    "sentiment": "angry",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my home loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00036",
+    "borrower_id": "BRW00004",
+    "channel": "voice",
+    "timestamp": "2026-06-05T14:00:00",
+    "intent": "settlement_request",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00037",
+    "borrower_id": "BRW00074",
+    "channel": "chat",
+    "timestamp": "2026-06-01T11:00:00",
+    "intent": "settlement_request",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "escalated",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00038",
+    "borrower_id": "BRW00084",
+    "channel": "chat",
+    "timestamp": "2026-03-24T04:00:00",
+    "intent": "payment_failure",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my personal loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00039",
+    "borrower_id": "BRW00099",
+    "channel": "voice",
+    "timestamp": "2025-12-22T09:00:00",
+    "intent": "penalty_waiver",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my education loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "follow_up_needed",
+    "promise_to_pay": null,
+    "preferred_language": "Tamil"
+  },
+  {
+    "conversation_id": "CONV00040",
+    "borrower_id": "BRW00075",
+    "channel": "voice",
+    "timestamp": "2026-05-10T20:00:00",
+    "intent": "interest_paid",
+    "sentiment": "angry",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00041",
+    "borrower_id": "BRW00037",
+    "channel": "voice",
+    "timestamp": "2026-04-23T08:00:00",
+    "intent": "penalty_waiver",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my personal loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "escalated",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00042",
+    "borrower_id": "BRW00063",
+    "channel": "voice",
+    "timestamp": "2026-02-23T08:00:00",
+    "intent": "remaining_emi",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "How many EMIs are remaining on my loan?"
+      },
+      {
+        "role": "agent",
+        "text": "Let me check your loan tenure and due schedule."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00043",
+    "borrower_id": "BRW00088",
+    "channel": "voice",
+    "timestamp": "2026-03-04T00:00:00",
+    "intent": "settlement_request",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my home loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00044",
+    "borrower_id": "BRW00024",
+    "channel": "voice",
+    "timestamp": "2026-06-06T05:00:00",
+    "intent": "penalty_waiver",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my home loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00045",
+    "borrower_id": "BRW00016",
+    "channel": "chat",
+    "timestamp": "2026-03-11T19:00:00",
+    "intent": "promise_to_pay",
+    "sentiment": "angry",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "My salary delay means I cannot pay right now. I'll pay after my salary credits."
+      },
+      {
+        "role": "agent",
+        "text": "I understand. When do you expect to make the payment?"
+      },
+      {
+        "role": "borrower",
+        "text": "I should be able to pay the EMI of Rs.127348 by 2026-03-31."
+      },
+      {
+        "role": "agent",
+        "text": "Noted. I've recorded your commitment and we'll follow up gently."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": {
+      "date": "2026-03-31",
+      "amount": 127347.92,
+      "reason": "salary delay",
+      "kept": null
+    },
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00046",
+    "borrower_id": "BRW00119",
+    "channel": "voice",
+    "timestamp": "2026-04-19T15:00:00",
+    "intent": "interest_paid",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00047",
+    "borrower_id": "BRW00028",
+    "channel": "voice",
+    "timestamp": "2026-05-10T04:00:00",
+    "intent": "promise_to_pay",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "My medical emergency means I cannot pay right now. I'll pay after my salary credits."
+      },
+      {
+        "role": "agent",
+        "text": "I understand. When do you expect to make the payment?"
+      },
+      {
+        "role": "borrower",
+        "text": "I should be able to pay the EMI of Rs.41941 by 2026-05-17."
+      },
+      {
+        "role": "agent",
+        "text": "Noted. I've recorded your commitment and we'll follow up gently."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": {
+      "date": "2026-05-17",
+      "amount": 41940.62,
+      "reason": "medical emergency",
+      "kept": null
+    },
+    "preferred_language": "Telugu"
+  },
+  {
+    "conversation_id": "CONV00048",
+    "borrower_id": "BRW00035",
+    "channel": "chat",
+    "timestamp": "2026-02-05T04:00:00",
+    "intent": "penalty_waiver",
+    "sentiment": "angry",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00049",
+    "borrower_id": "BRW00060",
+    "channel": "chat",
+    "timestamp": "2026-02-16T18:00:00",
+    "intent": "foreclosure",
+    "sentiment": "angry",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "escalated",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00050",
+    "borrower_id": "BRW00088",
+    "channel": "chat",
+    "timestamp": "2026-02-28T07:00:00",
+    "intent": "penalty_waiver",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my home loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "escalated",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00051",
+    "borrower_id": "BRW00027",
+    "channel": "chat",
+    "timestamp": "2026-02-17T20:00:00",
+    "intent": "foreclosure",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my home loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "follow_up_needed",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00052",
+    "borrower_id": "BRW00078",
+    "channel": "voice",
+    "timestamp": "2026-02-19T04:00:00",
+    "intent": "settlement_request",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00053",
+    "borrower_id": "BRW00058",
+    "channel": "chat",
+    "timestamp": "2026-05-30T18:00:00",
+    "intent": "penalty_inquiry",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "Why was a penalty charged on my account?"
+      },
+      {
+        "role": "agent",
+        "text": "I'll review your payment timeline and the late-payment policy."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00054",
+    "borrower_id": "BRW00051",
+    "channel": "voice",
+    "timestamp": "2026-05-10T05:00:00",
+    "intent": "remaining_emi",
+    "sentiment": "anxious",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "How many EMIs are remaining on my loan?"
+      },
+      {
+        "role": "agent",
+        "text": "Let me check your loan tenure and due schedule."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Telugu"
+  },
+  {
+    "conversation_id": "CONV00055",
+    "borrower_id": "BRW00046",
+    "channel": "chat",
+    "timestamp": "2026-05-21T04:00:00",
+    "intent": "payment_failure",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my education loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Bengali"
+  },
+  {
+    "conversation_id": "CONV00056",
+    "borrower_id": "BRW00016",
+    "channel": "chat",
+    "timestamp": "2026-03-18T12:00:00",
+    "intent": "remaining_emi",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "How many EMIs are remaining on my loan?"
+      },
+      {
+        "role": "agent",
+        "text": "Let me check your loan tenure and due schedule."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00057",
+    "borrower_id": "BRW00073",
+    "channel": "voice",
+    "timestamp": "2026-04-09T17:00:00",
+    "intent": "promise_to_pay",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "My medical emergency means I cannot pay right now. I'll pay after my salary credits."
+      },
+      {
+        "role": "agent",
+        "text": "I understand. When do you expect to make the payment?"
+      },
+      {
+        "role": "borrower",
+        "text": "I should be able to pay the EMI of Rs.38049 by 2026-04-21."
+      },
+      {
+        "role": "agent",
+        "text": "Noted. I've recorded your commitment and we'll follow up gently."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": {
+      "date": "2026-04-21",
+      "amount": 38049.35,
+      "reason": "medical emergency",
+      "kept": null
+    },
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00058",
+    "borrower_id": "BRW00072",
+    "channel": "chat",
+    "timestamp": "2026-01-03T13:00:00",
+    "intent": "penalty_waiver",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my personal loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "follow_up_needed",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00059",
+    "borrower_id": "BRW00056",
+    "channel": "chat",
+    "timestamp": "2026-03-19T04:00:00",
+    "intent": "promise_to_pay",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "My awaiting client payment means I cannot pay right now. I'll pay after my salary credits."
+      },
+      {
+        "role": "agent",
+        "text": "I understand. When do you expect to make the payment?"
+      },
+      {
+        "role": "borrower",
+        "text": "I should be able to pay the EMI of Rs.14332 by 2026-04-06."
+      },
+      {
+        "role": "agent",
+        "text": "Noted. I've recorded your commitment and we'll follow up gently."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": {
+      "date": "2026-04-06",
+      "amount": 14331.99,
+      "reason": "awaiting client payment",
+      "kept": null
+    },
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00060",
+    "borrower_id": "BRW00054",
+    "channel": "chat",
+    "timestamp": "2026-05-07T20:00:00",
+    "intent": "interest_paid",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00061",
+    "borrower_id": "BRW00031",
+    "channel": "voice",
+    "timestamp": "2026-06-03T01:00:00",
+    "intent": "general_faq",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my home loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "follow_up_needed",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00062",
+    "borrower_id": "BRW00037",
+    "channel": "voice",
+    "timestamp": "2026-02-25T09:00:00",
+    "intent": "penalty_inquiry",
+    "sentiment": "anxious",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "Why was a penalty charged on my account?"
+      },
+      {
+        "role": "agent",
+        "text": "I'll review your payment timeline and the late-payment policy."
+      }
+    ],
+    "resolved": false,
+    "outcome": "escalated",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00063",
+    "borrower_id": "BRW00003",
+    "channel": "chat",
+    "timestamp": "2026-02-08T07:00:00",
+    "intent": "interest_paid",
+    "sentiment": "anxious",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Telugu"
+  },
+  {
+    "conversation_id": "CONV00064",
+    "borrower_id": "BRW00036",
+    "channel": "chat",
+    "timestamp": "2026-03-11T22:00:00",
+    "intent": "promise_to_pay",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "My awaiting client payment means I cannot pay right now. I'll pay after my salary credits."
+      },
+      {
+        "role": "agent",
+        "text": "I understand. When do you expect to make the payment?"
+      },
+      {
+        "role": "borrower",
+        "text": "I should be able to pay the EMI of Rs.4881 by 2026-03-24."
+      },
+      {
+        "role": "agent",
+        "text": "Noted. I've recorded your commitment and we'll follow up gently."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": {
+      "date": "2026-03-24",
+      "amount": 4880.56,
+      "reason": "awaiting client payment",
+      "kept": null
+    },
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00065",
+    "borrower_id": "BRW00039",
+    "channel": "chat",
+    "timestamp": "2026-02-01T14:00:00",
+    "intent": "foreclosure",
+    "sentiment": "angry",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00066",
+    "borrower_id": "BRW00080",
+    "channel": "voice",
+    "timestamp": "2026-06-01T03:00:00",
+    "intent": "interest_paid",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my home loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Telugu"
+  },
+  {
+    "conversation_id": "CONV00067",
+    "borrower_id": "BRW00042",
+    "channel": "chat",
+    "timestamp": "2026-04-12T05:00:00",
+    "intent": "settlement_request",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my education loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "follow_up_needed",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00068",
+    "borrower_id": "BRW00069",
+    "channel": "voice",
+    "timestamp": "2025-12-14T09:00:00",
+    "intent": "remaining_emi",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "How many EMIs are remaining on my loan?"
+      },
+      {
+        "role": "agent",
+        "text": "Let me check your loan tenure and due schedule."
+      }
+    ],
+    "resolved": false,
+    "outcome": "escalated",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00069",
+    "borrower_id": "BRW00039",
+    "channel": "chat",
+    "timestamp": "2026-04-02T00:00:00",
+    "intent": "interest_paid",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "escalated",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00070",
+    "borrower_id": "BRW00022",
+    "channel": "voice",
+    "timestamp": "2026-01-09T20:00:00",
+    "intent": "penalty_inquiry",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "Why was a penalty charged on my account?"
+      },
+      {
+        "role": "agent",
+        "text": "I'll review your payment timeline and the late-payment policy."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00071",
+    "borrower_id": "BRW00097",
+    "channel": "voice",
+    "timestamp": "2026-02-22T14:00:00",
+    "intent": "general_faq",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Tamil"
+  },
+  {
+    "conversation_id": "CONV00072",
+    "borrower_id": "BRW00074",
+    "channel": "chat",
+    "timestamp": "2025-12-20T19:00:00",
+    "intent": "foreclosure",
+    "sentiment": "angry",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00073",
+    "borrower_id": "BRW00029",
+    "channel": "voice",
+    "timestamp": "2026-04-02T01:00:00",
+    "intent": "interest_paid",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my personal loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00074",
+    "borrower_id": "BRW00085",
+    "channel": "voice",
+    "timestamp": "2025-12-13T08:00:00",
+    "intent": "payment_failure",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my education loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00075",
+    "borrower_id": "BRW00002",
+    "channel": "voice",
+    "timestamp": "2026-02-08T22:00:00",
+    "intent": "payment_failure",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my education loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Bengali"
+  },
+  {
+    "conversation_id": "CONV00076",
+    "borrower_id": "BRW00105",
+    "channel": "chat",
+    "timestamp": "2026-01-23T18:00:00",
+    "intent": "general_faq",
+    "sentiment": "anxious",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "follow_up_needed",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00077",
+    "borrower_id": "BRW00084",
+    "channel": "chat",
+    "timestamp": "2026-01-30T07:00:00",
+    "intent": "penalty_inquiry",
+    "sentiment": "anxious",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "Why was a penalty charged on my account?"
+      },
+      {
+        "role": "agent",
+        "text": "I'll review your payment timeline and the late-payment policy."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00078",
+    "borrower_id": "BRW00050",
+    "channel": "voice",
+    "timestamp": "2025-12-31T18:00:00",
+    "intent": "foreclosure",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my home loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00079",
+    "borrower_id": "BRW00036",
+    "channel": "voice",
+    "timestamp": "2026-04-26T13:00:00",
+    "intent": "settlement_request",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my personal loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "escalated",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00080",
+    "borrower_id": "BRW00113",
+    "channel": "chat",
+    "timestamp": "2026-05-11T03:00:00",
+    "intent": "interest_paid",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Marathi"
+  },
+  {
+    "conversation_id": "CONV00081",
+    "borrower_id": "BRW00004",
+    "channel": "voice",
+    "timestamp": "2025-12-20T18:00:00",
+    "intent": "foreclosure",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00082",
+    "borrower_id": "BRW00046",
+    "channel": "chat",
+    "timestamp": "2026-04-15T06:00:00",
+    "intent": "settlement_request",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my education loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Bengali"
+  },
+  {
+    "conversation_id": "CONV00083",
+    "borrower_id": "BRW00007",
+    "channel": "chat",
+    "timestamp": "2026-03-30T23:00:00",
+    "intent": "foreclosure",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my personal loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00084",
+    "borrower_id": "BRW00025",
+    "channel": "chat",
+    "timestamp": "2026-04-20T22:00:00",
+    "intent": "penalty_waiver",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my education loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00085",
+    "borrower_id": "BRW00067",
+    "channel": "voice",
+    "timestamp": "2026-05-11T13:00:00",
+    "intent": "settlement_request",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my home loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00086",
+    "borrower_id": "BRW00029",
+    "channel": "voice",
+    "timestamp": "2026-05-26T09:00:00",
+    "intent": "interest_paid",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my personal loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00087",
+    "borrower_id": "BRW00036",
+    "channel": "voice",
+    "timestamp": "2025-12-31T12:00:00",
+    "intent": "payment_failure",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my personal loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00088",
+    "borrower_id": "BRW00029",
+    "channel": "chat",
+    "timestamp": "2026-02-02T04:00:00",
+    "intent": "penalty_waiver",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my personal loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00089",
+    "borrower_id": "BRW00091",
+    "channel": "chat",
+    "timestamp": "2026-03-26T11:00:00",
+    "intent": "general_faq",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00090",
+    "borrower_id": "BRW00095",
+    "channel": "voice",
+    "timestamp": "2025-12-14T03:00:00",
+    "intent": "penalty_waiver",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my education loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00091",
+    "borrower_id": "BRW00024",
+    "channel": "voice",
+    "timestamp": "2026-02-12T06:00:00",
+    "intent": "promise_to_pay",
+    "sentiment": "angry",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "My awaiting client payment means I cannot pay right now. I'll pay after my salary credits."
+      },
+      {
+        "role": "agent",
+        "text": "I understand. When do you expect to make the payment?"
+      },
+      {
+        "role": "borrower",
+        "text": "I should be able to pay the EMI of Rs.21192 by 2026-03-02."
+      },
+      {
+        "role": "agent",
+        "text": "Noted. I've recorded your commitment and we'll follow up gently."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": {
+      "date": "2026-03-02",
+      "amount": 21192.43,
+      "reason": "awaiting client payment",
+      "kept": null
+    },
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00092",
+    "borrower_id": "BRW00034",
+    "channel": "chat",
+    "timestamp": "2026-04-25T13:00:00",
+    "intent": "interest_paid",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00093",
+    "borrower_id": "BRW00061",
+    "channel": "voice",
+    "timestamp": "2026-06-07T19:00:00",
+    "intent": "general_faq",
+    "sentiment": "anxious",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00094",
+    "borrower_id": "BRW00105",
+    "channel": "voice",
+    "timestamp": "2026-01-13T13:00:00",
+    "intent": "remaining_emi",
+    "sentiment": "angry",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "How many EMIs are remaining on my loan?"
+      },
+      {
+        "role": "agent",
+        "text": "Let me check your loan tenure and due schedule."
+      }
+    ],
+    "resolved": false,
+    "outcome": "follow_up_needed",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00095",
+    "borrower_id": "BRW00100",
+    "channel": "chat",
+    "timestamp": "2026-05-14T01:00:00",
+    "intent": "interest_paid",
+    "sentiment": "anxious",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00096",
+    "borrower_id": "BRW00095",
+    "channel": "chat",
+    "timestamp": "2026-01-20T02:00:00",
+    "intent": "promise_to_pay",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "My business cash-flow gap means I cannot pay right now. I'll pay after my salary credits."
+      },
+      {
+        "role": "agent",
+        "text": "I understand. When do you expect to make the payment?"
+      },
+      {
+        "role": "borrower",
+        "text": "I should be able to pay the EMI of Rs.58597 by 2026-01-31."
+      },
+      {
+        "role": "agent",
+        "text": "Noted. I've recorded your commitment and we'll follow up gently."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": {
+      "date": "2026-01-31",
+      "amount": 58597.2,
+      "reason": "business cash-flow gap",
+      "kept": null
+    },
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00097",
+    "borrower_id": "BRW00039",
+    "channel": "voice",
+    "timestamp": "2026-01-26T13:00:00",
+    "intent": "promise_to_pay",
+    "sentiment": "anxious",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "My salary delay means I cannot pay right now. I'll pay after my salary credits."
+      },
+      {
+        "role": "agent",
+        "text": "I understand. When do you expect to make the payment?"
+      },
+      {
+        "role": "borrower",
+        "text": "I should be able to pay the EMI of Rs.6299 by 2026-02-13."
+      },
+      {
+        "role": "agent",
+        "text": "Noted. I've recorded your commitment and we'll follow up gently."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": {
+      "date": "2026-02-13",
+      "amount": 6298.89,
+      "reason": "salary delay",
+      "kept": null
+    },
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00098",
+    "borrower_id": "BRW00019",
+    "channel": "voice",
+    "timestamp": "2026-04-12T13:00:00",
+    "intent": "settlement_request",
+    "sentiment": "angry",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Marathi"
+  },
+  {
+    "conversation_id": "CONV00099",
+    "borrower_id": "BRW00032",
+    "channel": "voice",
+    "timestamp": "2025-12-11T21:00:00",
+    "intent": "general_faq",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my education loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "follow_up_needed",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00100",
+    "borrower_id": "BRW00049",
+    "channel": "chat",
+    "timestamp": "2026-03-29T14:00:00",
+    "intent": "interest_paid",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "follow_up_needed",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00101",
+    "borrower_id": "BRW00113",
+    "channel": "chat",
+    "timestamp": "2026-04-25T02:00:00",
+    "intent": "account_info",
+    "sentiment": "anxious",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Marathi"
+  },
+  {
+    "conversation_id": "CONV00102",
+    "borrower_id": "BRW00051",
+    "channel": "chat",
+    "timestamp": "2026-02-22T02:00:00",
+    "intent": "general_faq",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Telugu"
+  },
+  {
+    "conversation_id": "CONV00103",
+    "borrower_id": "BRW00107",
+    "channel": "chat",
+    "timestamp": "2026-05-07T21:00:00",
+    "intent": "general_faq",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00104",
+    "borrower_id": "BRW00037",
+    "channel": "voice",
+    "timestamp": "2026-06-05T19:00:00",
+    "intent": "interest_paid",
+    "sentiment": "angry",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my personal loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00105",
+    "borrower_id": "BRW00067",
+    "channel": "chat",
+    "timestamp": "2025-12-30T17:00:00",
+    "intent": "penalty_waiver",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my home loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00106",
+    "borrower_id": "BRW00009",
+    "channel": "voice",
+    "timestamp": "2026-06-04T20:00:00",
+    "intent": "penalty_waiver",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my home loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00107",
+    "borrower_id": "BRW00007",
+    "channel": "voice",
+    "timestamp": "2026-03-22T10:00:00",
+    "intent": "foreclosure",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my personal loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00108",
+    "borrower_id": "BRW00007",
+    "channel": "voice",
+    "timestamp": "2026-05-03T23:00:00",
+    "intent": "penalty_waiver",
+    "sentiment": "anxious",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my personal loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "follow_up_needed",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00109",
+    "borrower_id": "BRW00092",
+    "channel": "voice",
+    "timestamp": "2026-05-02T11:00:00",
+    "intent": "penalty_waiver",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my home loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00110",
+    "borrower_id": "BRW00038",
+    "channel": "chat",
+    "timestamp": "2026-05-30T19:00:00",
+    "intent": "payment_failure",
+    "sentiment": "angry",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my education loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00111",
+    "borrower_id": "BRW00055",
+    "channel": "voice",
+    "timestamp": "2026-05-14T02:00:00",
+    "intent": "settlement_request",
+    "sentiment": "angry",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00112",
+    "borrower_id": "BRW00073",
+    "channel": "voice",
+    "timestamp": "2025-12-17T00:00:00",
+    "intent": "settlement_request",
+    "sentiment": "anxious",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00113",
+    "borrower_id": "BRW00033",
+    "channel": "chat",
+    "timestamp": "2026-02-21T17:00:00",
+    "intent": "penalty_inquiry",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "Why was a penalty charged on my account?"
+      },
+      {
+        "role": "agent",
+        "text": "I'll review your payment timeline and the late-payment policy."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Marathi"
+  },
+  {
+    "conversation_id": "CONV00114",
+    "borrower_id": "BRW00073",
+    "channel": "chat",
+    "timestamp": "2026-01-20T05:00:00",
+    "intent": "foreclosure",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "escalated",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00115",
+    "borrower_id": "BRW00068",
+    "channel": "chat",
+    "timestamp": "2025-12-13T00:00:00",
+    "intent": "foreclosure",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Bengali"
+  },
+  {
+    "conversation_id": "CONV00116",
+    "borrower_id": "BRW00060",
+    "channel": "voice",
+    "timestamp": "2026-02-18T20:00:00",
+    "intent": "promise_to_pay",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "My awaiting client payment means I cannot pay right now. I'll pay after my salary credits."
+      },
+      {
+        "role": "agent",
+        "text": "I understand. When do you expect to make the payment?"
+      },
+      {
+        "role": "borrower",
+        "text": "I should be able to pay the EMI of Rs.11435 by 2026-03-06."
+      },
+      {
+        "role": "agent",
+        "text": "Noted. I've recorded your commitment and we'll follow up gently."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": {
+      "date": "2026-03-06",
+      "amount": 11435.49,
+      "reason": "awaiting client payment",
+      "kept": null
+    },
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00117",
+    "borrower_id": "BRW00099",
+    "channel": "voice",
+    "timestamp": "2026-05-17T06:00:00",
+    "intent": "settlement_request",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my education loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Tamil"
+  },
+  {
+    "conversation_id": "CONV00118",
+    "borrower_id": "BRW00075",
+    "channel": "chat",
+    "timestamp": "2026-03-05T06:00:00",
+    "intent": "account_info",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "escalated",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00119",
+    "borrower_id": "BRW00109",
+    "channel": "chat",
+    "timestamp": "2026-05-06T22:00:00",
+    "intent": "settlement_request",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my education loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00120",
+    "borrower_id": "BRW00108",
+    "channel": "voice",
+    "timestamp": "2026-05-18T09:00:00",
+    "intent": "remaining_emi",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "How many EMIs are remaining on my loan?"
+      },
+      {
+        "role": "agent",
+        "text": "Let me check your loan tenure and due schedule."
+      }
+    ],
+    "resolved": false,
+    "outcome": "escalated",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00121",
+    "borrower_id": "BRW00013",
+    "channel": "voice",
+    "timestamp": "2026-01-14T19:00:00",
+    "intent": "penalty_waiver",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": false,
+    "outcome": "follow_up_needed",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00122",
+    "borrower_id": "BRW00087",
+    "channel": "chat",
+    "timestamp": "2026-05-25T12:00:00",
+    "intent": "account_info",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Hindi"
+  },
+  {
+    "conversation_id": "CONV00123",
+    "borrower_id": "BRW00018",
+    "channel": "chat",
+    "timestamp": "2025-12-17T14:00:00",
+    "intent": "payment_failure",
+    "sentiment": "anxious",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00124",
+    "borrower_id": "BRW00093",
+    "channel": "voice",
+    "timestamp": "2026-02-03T15:00:00",
+    "intent": "remaining_emi",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "How many EMIs are remaining on my loan?"
+      },
+      {
+        "role": "agent",
+        "text": "Let me check your loan tenure and due schedule."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00125",
+    "borrower_id": "BRW00020",
+    "channel": "chat",
+    "timestamp": "2026-05-08T18:00:00",
+    "intent": "general_faq",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "Telugu"
+  },
+  {
+    "conversation_id": "CONV00126",
+    "borrower_id": "BRW00004",
+    "channel": "chat",
+    "timestamp": "2026-02-14T22:00:00",
+    "intent": "account_info",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00127",
+    "borrower_id": "BRW00062",
+    "channel": "chat",
+    "timestamp": "2026-04-08T17:00:00",
+    "intent": "penalty_inquiry",
+    "sentiment": "neutral",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "Why was a penalty charged on my account?"
+      },
+      {
+        "role": "agent",
+        "text": "I'll review your payment timeline and the late-payment policy."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00128",
+    "borrower_id": "BRW00110",
+    "channel": "voice",
+    "timestamp": "2026-05-07T21:00:00",
+    "intent": "general_faq",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00129",
+    "borrower_id": "BRW00105",
+    "channel": "chat",
+    "timestamp": "2026-04-25T18:00:00",
+    "intent": "payment_failure",
+    "sentiment": "frustrated",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my auto loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  },
+  {
+    "conversation_id": "CONV00130",
+    "borrower_id": "BRW00062",
+    "channel": "chat",
+    "timestamp": "2026-03-25T13:00:00",
+    "intent": "penalty_waiver",
+    "sentiment": "positive",
+    "transcript": [
+      {
+        "role": "agent",
+        "text": "Thank you for calling. How can I help you today?"
+      },
+      {
+        "role": "borrower",
+        "text": "I have a question about my business loan."
+      },
+      {
+        "role": "agent",
+        "text": "Sure, I can help with that."
+      }
+    ],
+    "resolved": true,
+    "outcome": "resolved",
+    "promise_to_pay": null,
+    "preferred_language": "English"
+  }
+]
