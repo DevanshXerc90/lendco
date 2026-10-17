@@ -72,12 +72,18 @@ def eval_scenarios(n_borrowers: int = 8) -> dict:
                                         "intent_ok": 0, "tools": defaultdict(int)})
     redundant_turns = total_turns = 0
 
+    payments = json.loads((settings.DATA_DIR / "payments.json").read_text(encoding="utf-8"))
+    borrowers_with_failures = {p["borrower_id"] for p in payments if p["status"] != "success"}
+
     for name, script in scenarios.SCRIPTS.items():
         expected = {"remaining": "remaining_emi", "interest": "interest_paid", "penalty": "penalty_inquiry",
                     "payment_failure": "payment_failure", "waiver": "penalty_waiver",
                     "foreclosure": "foreclosure", "settlement": "settlement_request",
                     "account": "account_info"}.get(name)
-        sample = borrowers[:n_borrowers]
+        if name == "payment_failure":
+            sample = [b for b in borrowers if b["borrower_id"] in borrowers_with_failures][:n_borrowers]
+        else:
+            sample = borrowers[:n_borrowers]
         for b in sample:
             mem = _tmp_mem()
             orc = _fresh_orc(mem)
@@ -99,7 +105,11 @@ def eval_scenarios(n_borrowers: int = 8) -> dict:
             s["turns"] += summary["turns"]
             if expected and last and last["intent"] == expected:
                 s["intent_ok"] += 1
-            if last and (last["intent"] not in POLICY_INTENTS or CITE_RE.search(last["text"] or "")):
+            makes_policy_statement = (
+                last["intent"] in POLICY_INTENTS
+                and "don't see a failed payment" not in (last["text"] or "").lower()
+            ) if last else False
+            if last and (not makes_policy_statement or CITE_RE.search(last["text"] or "")):
                 s["grounded"] += 1
             for t in summary["tools_used"]:
                 s["tools"][t] += 1

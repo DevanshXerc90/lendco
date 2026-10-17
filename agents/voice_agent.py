@@ -68,6 +68,14 @@ def build_system_prompt(context: dict, recall: dict, diagnosis, persona: str = P
     )
 
 
+import re
+import json
+
+CITE_RE = re.compile(r"\d{2}_[a-z_]+")
+POLICY_INTENTS = {"penalty_inquiry", "penalty_waiver", "payment_failure", "settlement_request",
+                  "foreclosure", "interest_paid"}
+
+
 class VoiceAgent:
     def __init__(self, llm, memory):
         self.llm = llm
@@ -87,7 +95,52 @@ class VoiceAgent:
             system=system, messages=messages, tools=tools,
             tool_executor=lambda name, args: toolkit.execute(name, args, tool_ctx),
         )
-        return {"text": result.text, "tool_trace": tool_ctx.trace, "action": None}
+
+        text = result.text
+        action = None
+
+        # Guardrail: If intent is a policy intent and no KB doc id is cited,
+        # force one search_knowledge_base call and retry once.
+        if diagnosis.intent in POLICY_INTENTS and not CITE_RE.search(text or ""):
+            query = history[-1]["text"] if history else diagnosis.intent.replace("_", " ")
+            kb_res = toolkit.execute("search_knowledge_base", {"query": query, "k": 2}, tool_ctx)
+
+            retry_prompt = (
+                f"Your previous response was missing a mandatory policy citation.\n"
+                f"Retrieved policy documentation:\n"
+                f"{json.dumps(kb_res.get('results', []), default=str)}\n"
+                f"Please rewrite your response to the borrower, grounding your answer directly in this policy and citing the document ID (e.g. {kb_res.get('results', [{}])[0].get('doc_id', '')})."
+            )
+            retry_messages = list(messages) + [
+                {"role": "assistant", "content": text},
+                {"role": "user", "content": retry_prompt},
+            ]
+            retry_result = self.llm.run_agent(
+                system=system, messages=retry_messages, tools=tools,
+                tool_executor=lambda name, args: toolkit.execute(name, args, tool_ctx),
+            )
+            text = retry_result.text
+
+            # If still ungrounded, return a safe fallback that says policy will be checked and a ticket is raised
+            if not CITE_RE.search(text or ""):
+                toolkit.execute(
+                    "create_support_ticket",
+                    {
+                        "category": "policy_inquiry",
+                        "subject": f"Policy clarification needed for {diagnosis.intent}",
+                        "description": f"Automated response ungrounded for query: {query}",
+                    },
+                    tool_ctx,
+                )
+                action = "ticket_created"
+                text = (
+                    "I want to make sure I give you the exact policy details. "
+                    "Our policy will be verified by our team, and a support ticket has been raised "
+                    "for your account to ensure this is reviewed accurately."
+                )
+
+        return {"text": text, "tool_trace": tool_ctx.trace, "action": action}
+
 
     # ------------------------------------------------------- deterministic path
     def respond_rule_based(self, context, recall, diagnosis, collected, tool_ctx: ToolContext) -> dict:
