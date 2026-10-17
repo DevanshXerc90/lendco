@@ -78,6 +78,56 @@ python -m app.cli --borrower BRW00010 --voice  # local mic + speaker (set STT/TT
 | Multi-agent architecture (bonus) | [`agents/`](agents) — 5 explicit agents + orchestrator |
 | Sentiment / risk / analytics / eval (bonus) | [`agents/orchestrator.py`](agents/orchestrator.py), [`eval/`](eval), [`dashboard/`](dashboard) |
 
+## Evaluation Results & Reproducibility
+
+Results generated directly from [`eval/results.json`](eval/results.json) across the synthetic test set (120 borrowers, 1,813 payments, 22 KB docs):
+
+### Overall Performance
+
+| Metric | Measured Value | Notes |
+|---|---|---|
+| **Intent Accuracy** | **100.0%** (1.0) | 12/12 labelled intents matching ground truth |
+| **Policy Grounding Rate** | **100.0%** (1.0) | 64/64 answers grounded in 22-doc KB citations |
+| **Resolved without Escalation** | **87.5%** (0.875) | 56/64 scenarios resolved autonomously |
+| **Escalated by Design** | **12.5%** (0.125) | 8/8 settlement requests routed to human committee |
+| **Redundant Question Rate** | **0.0%** (0.0) | Zero re-asking of derivable/known slots |
+| **Root-Cause Accuracy** | **100.0%** (1.0) | 25/25 system vs customer failure classifications |
+| **Average Turns / Call** | **1.25 turns** | Across all 8 scenario scripts |
+| **Memory Turn Reduction** | **3.0 ➔ 1.0 turns** | Evaluated on 20 borrowers (min=1, max=1 on repeat call) |
+| **Memory-Aware Opener Share** | **100.0%** (1.0) | 20/20 repeat calls proactively reference prior commitments |
+
+### Per-Scenario Breakdown
+
+| Scenario | Runs | Resolved (No Esc.) | Escalated by Design | Grounding Rate | Intent Accuracy | Avg Turns |
+|---|---|---|---|---|---|---|
+| `remaining` | 8 | 100.0% | 0.0% | 100.0% | 100.0% | 1.00 |
+| `interest` | 8 | 100.0% | 0.0% | 100.0% | 100.0% | 1.00 |
+| `penalty` | 8 | 100.0% | 0.0% | 100.0% | 100.0% | 1.00 |
+| `payment_failure` | 8 | 100.0% | 0.0% | 100.0% | 100.0% | 1.00 |
+| `waiver` | 8 | 100.0% | 0.0% | 100.0% | 100.0% | 2.00 |
+| `foreclosure` | 8 | 100.0% | 0.0% | 100.0% | 100.0% | 1.00 |
+| `settlement` | 8 | 0.0% | 100.0% (by design) | 100.0% | 100.0% | 1.00 |
+| `account` | 8 | 100.0% | 0.0% | 100.0% | 100.0% | 1.00 |
+
+### Reproduction Commands
+
+```bash
+# 1. Start the 5 mock platform services (terminal 1)
+python -m scripts.run_platforms
+
+# 2. Run the evaluation suite (terminal 2) -> writes eval/results.json
+python -m eval.evaluator
+
+# 3. Verify LangChain LCEL citation parity -> validates identical KB citations
+python -m eval.lcel_parity
+
+# 4. Optional: Run LLM evaluation (requires ANTHROPIC_API_KEY) -> writes eval/results_llm.json
+python -m eval.evaluator --llm
+
+# 5. Run complete test suite (all tests pass offline)
+python -m pytest
+```
+
 ## Documentation
 - [Architecture](docs/ARCHITECTURE.md) · [System Design](docs/SYSTEM_DESIGN.md) · [Deployment](docs/DEPLOYMENT.md) · [Demo script](docs/DEMO_SCRIPT.md)
 
@@ -85,3 +135,4 @@ python -m app.cli --borrower BRW00010 --voice  # local mic + speaker (set STT/TT
 ```bash
 python -m pytest -q        # core engines, scenarios, memory-improvement
 ```
+

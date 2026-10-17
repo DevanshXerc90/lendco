@@ -1,20 +1,24 @@
 {
   "intents": {
-    "intent_accuracy": 0.917,
+    "intent_accuracy": 1.0,
     "labelled_n": 12
   },
   "scenarios": {
     "overall": {
       "total_runs": 64,
-      "resolution_rate": 1.0,
-      "grounding_rate": 0.797,
-      "avg_turns": 1.12,
+      "resolution_rate": 0.875,
+      "resolved_without_escalation": 0.875,
+      "escalated_by_design": 0.125,
+      "grounding_rate": 1.0,
+      "avg_turns": 1.25,
       "redundant_question_rate": 0.0
     },
     "per_scenario": {
       "remaining": {
         "runs": 8,
         "resolution_rate": 1.0,
+        "resolved_without_escalation": 1.0,
+        "escalated_by_design": 0.0,
         "grounding_rate": 1.0,
         "intent_accuracy": 1.0,
         "avg_turns": 1.0,
@@ -25,6 +29,8 @@
       "interest": {
         "runs": 8,
         "resolution_rate": 1.0,
+        "resolved_without_escalation": 1.0,
+        "escalated_by_design": 0.0,
         "grounding_rate": 1.0,
         "intent_accuracy": 1.0,
         "avg_turns": 1.0,
@@ -36,6 +42,8 @@
       "penalty": {
         "runs": 8,
         "resolution_rate": 1.0,
+        "resolved_without_escalation": 1.0,
+        "escalated_by_design": 0.0,
         "grounding_rate": 1.0,
         "intent_accuracy": 1.0,
         "avg_turns": 1.0,
@@ -48,7 +56,9 @@
       "payment_failure": {
         "runs": 8,
         "resolution_rate": 1.0,
-        "grounding_rate": 0.375,
+        "resolved_without_escalation": 1.0,
+        "escalated_by_design": 0.0,
+        "grounding_rate": 1.0,
         "intent_accuracy": 1.0,
         "avg_turns": 1.0,
         "top_tools": [
@@ -60,6 +70,8 @@
       "waiver": {
         "runs": 8,
         "resolution_rate": 1.0,
+        "resolved_without_escalation": 1.0,
+        "escalated_by_design": 0.0,
         "grounding_rate": 1.0,
         "intent_accuracy": 1.0,
         "avg_turns": 2.0,
@@ -73,6 +85,8 @@
       "foreclosure": {
         "runs": 8,
         "resolution_rate": 1.0,
+        "resolved_without_escalation": 1.0,
+        "escalated_by_design": 0.0,
         "grounding_rate": 1.0,
         "intent_accuracy": 1.0,
         "avg_turns": 1.0,
@@ -84,20 +98,27 @@
       },
       "settlement": {
         "runs": 8,
-        "resolution_rate": 1.0,
-        "grounding_rate": 0.0,
+        "resolution_rate": 0.0,
+        "resolved_without_escalation": 0.0,
+        "escalated_by_design": 1.0,
+        "grounding_rate": 1.0,
         "intent_accuracy": 1.0,
-        "avg_turns": 1.0,
-        "top_tools": []
+        "avg_turns": 2.0,
+        "top_tools": [
+          "search_knowledge_base",
+          "create_support_ticket"
+        ]
       },
       "account": {
         "runs": 8,
         "resolution_rate": 1.0,
+        "resolved_without_escalation": 1.0,
+        "escalated_by_design": 0.0,
         "grounding_rate": 1.0,
-        "intent_accuracy": 0.0,
+        "intent_accuracy": 1.0,
         "avg_turns": 1.0,
         "top_tools": [
-          "search_knowledge_base"
+          "get_loan_analytics"
         ]
       }
     }
@@ -107,10 +128,18 @@
     "samples": 25
   },
   "memory_learning": {
-    "call1_turns": 3,
+    "borrowers_tested": 20,
+    "call1_turns": 3.0,
+    "call2_turns": 1.0,
+    "call1_mean": 3.0,
+    "call1_min": 3,
+    "call1_max": 3,
+    "call2_mean": 1.0,
+    "call2_min": 1,
+    "call2_max": 1,
+    "share_memory_aware": 1.0,
     "call2_memory_aware": true,
-    "call2_turns": 1,
-    "turns_saved": 2,
+    "turns_saved": 2.0,
     "learned_resolution_path": {
       "resolution_path": "conversational",
       "success_rate": 1.0,
