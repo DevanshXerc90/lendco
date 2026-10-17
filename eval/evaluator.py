@@ -101,7 +101,11 @@ def eval_scenarios(n_borrowers: int = 8, llm=None) -> dict:
             summary = orc.end()
             s = per_scenario[name]
             s["runs"] += 1
-            s["resolved"] += 1 if summary["resolved"] else 0
+            is_resolved = 1 if summary["resolved"] else 0
+            is_esc_by_design = 1 if (not summary["resolved"] and name == "settlement") else 0
+            s["resolved"] += is_resolved
+            s["resolved_without_escalation"] = s.get("resolved_without_escalation", 0) + is_resolved
+            s["escalated_by_design"] = s.get("escalated_by_design", 0) + is_esc_by_design
             s["turns"] += summary["turns"]
             if expected and last and last["intent"] == expected:
                 s["intent_ok"] += 1
@@ -123,6 +127,8 @@ def eval_scenarios(n_borrowers: int = 8, llm=None) -> dict:
         out[name] = {
             "runs": s["runs"],
             "resolution_rate": round(s["resolved"] / runs, 3),
+            "resolved_without_escalation": round(s.get("resolved_without_escalation", 0) / runs, 3),
+            "escalated_by_design": round(s.get("escalated_by_design", 0) / runs, 3),
             "grounding_rate": round(s["grounded"] / runs, 3),
             "intent_accuracy": round(s["intent_ok"] / runs, 3),
             "avg_turns": round(s["turns"] / runs, 2),
@@ -130,14 +136,19 @@ def eval_scenarios(n_borrowers: int = 8, llm=None) -> dict:
         }
         tot_runs += s["runs"]; tot_res += s["resolved"]; tot_ground += s["grounded"]
         tot_intent += s["intent_ok"]; sum_turns += s["turns"]
+    tot_resolved_without_esc = sum(s.get("resolved_without_escalation", 0) for s in per_scenario.values())
+    tot_escalated_by_design = sum(s.get("escalated_by_design", 0) for s in per_scenario.values())
     overall = {
         "total_runs": tot_runs,
         "resolution_rate": round(tot_res / (tot_runs or 1), 3),
+        "resolved_without_escalation": round(tot_resolved_without_esc / (tot_runs or 1), 3),
+        "escalated_by_design": round(tot_escalated_by_design / (tot_runs or 1), 3),
         "grounding_rate": round(tot_ground / (tot_runs or 1), 3),
         "avg_turns": round(sum_turns / (tot_runs or 1), 2),
         "redundant_question_rate": round(redundant_turns / (total_turns or 1), 3),
     }
     return {"overall": overall, "per_scenario": out}
+
 
 
 def eval_root_cause(n: int = 25, llm=None) -> dict:
@@ -249,11 +260,12 @@ if __name__ == "__main__":
     dest_file = "eval/results_llm.json" if args.llm else "eval/results.json"
     print("=== EVALUATION RESULTS ===")
     print(f"intent accuracy        : {r['intents']['intent_accuracy']}")
-    print(f"resolution rate        : {o['resolution_rate']}")
+    print(f"resolution rate        : {o['resolution_rate']} (resolved_without_escalation: {o['resolved_without_escalation']}, escalated_by_design: {o['escalated_by_design']})")
     print(f"grounding rate         : {o['grounding_rate']}")
     print(f"avg turns / call       : {o['avg_turns']}")
     print(f"redundant question rate: {o['redundant_question_rate']}")
     print(f"root-cause accuracy    : {r['root_cause']['root_cause_accuracy']} (n={r['root_cause']['samples']})")
+
     m = r["memory_learning"]
     print(f"memory (n={m.get('borrowers_tested', 1)}): call1 mean={m['call1_mean']} (min={m['call1_min']}, max={m['call1_max']}) -> "
           f"call2 mean={m['call2_mean']} (min={m['call2_min']}, max={m['call2_max']}), "

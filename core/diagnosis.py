@@ -28,7 +28,7 @@ INTENT_KEYWORDS: dict[str, list[str]] = {
     "promise_to_pay": ["i will pay", "pay next", "pay by", "salary is delayed", "salary delay", "pay after", "promise to pay", "make the payment on"],
     "settlement_request": ["settle", "settlement", "one time settlement", "ots", "close at a lower"],
     "foreclosure": ["foreclose", "foreclosure", "close my loan", "pay off the loan", "preclose", "payoff amount"],
-    "account_info": ["my loan details", "account information", "loan summary", "my emi amount", "due date"],
+    "account_info": ["my loan details", "account information", "loan summary", "my emi amount", "due date", "summary of my loan", "summary of my account", "loan account", "account summary"],
     "general_faq": ["how does", "what is", "policy", "explain", "can i"],
 }
 
