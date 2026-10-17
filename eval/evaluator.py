@@ -57,8 +57,8 @@ def _tmp_mem() -> MemoryManager:
     return MemoryManager(db_path=tempfile.mktemp(suffix=".db"))
 
 
-def _fresh_orc(mem):
-    return Orchestrator(memory=mem, llm=NullLLM())
+def _fresh_orc(mem, llm=None):
+    return Orchestrator(memory=mem, llm=llm or NullLLM())
 
 
 def eval_intents() -> dict:
@@ -66,7 +66,7 @@ def eval_intents() -> dict:
     return {"intent_accuracy": round(correct / len(LABELLED), 3), "labelled_n": len(LABELLED)}
 
 
-def eval_scenarios(n_borrowers: int = 8) -> dict:
+def eval_scenarios(n_borrowers: int = 8, llm=None) -> dict:
     borrowers = json.loads((settings.DATA_DIR / "borrowers.json").read_text(encoding="utf-8"))
     per_scenario = defaultdict(lambda: {"runs": 0, "resolved": 0, "grounded": 0, "turns": 0,
                                         "intent_ok": 0, "tools": defaultdict(int)})
@@ -86,7 +86,7 @@ def eval_scenarios(n_borrowers: int = 8) -> dict:
             sample = borrowers[:n_borrowers]
         for b in sample:
             mem = _tmp_mem()
-            orc = _fresh_orc(mem)
+            orc = _fresh_orc(mem, llm=llm)
             orc.start(borrower_id=b["borrower_id"])
             last = None
             asked = set()
@@ -140,7 +140,7 @@ def eval_scenarios(n_borrowers: int = 8) -> dict:
     return {"overall": overall, "per_scenario": out}
 
 
-def eval_root_cause(n: int = 25) -> dict:
+def eval_root_cause(n: int = 25, llm=None) -> dict:
     """Does the agent's failure classification match the ground-truth root cause?"""
     payments = json.loads((settings.DATA_DIR / "payments.json").read_text(encoding="utf-8"))
     byb = defaultdict(list)
@@ -153,7 +153,7 @@ def eval_root_cause(n: int = 25) -> dict:
             continue
         truth = fails[-1]["root_cause"]
         mem = _tmp_mem()
-        orc = _fresh_orc(mem)
+        orc = _fresh_orc(mem, llm=llm)
         orc.start(borrower_id=b)
         res = orc.handle("My payment failed, what happened?")
         text = (res["text"] or "").lower()
@@ -165,18 +165,18 @@ def eval_root_cause(n: int = 25) -> dict:
     return {"root_cause_accuracy": round(correct / (total or 1), 3), "samples": total}
 
 
-def eval_memory() -> dict:
+def eval_memory(llm=None) -> dict:
     """Continuous learning: a repeat interaction should be faster + memory-aware."""
     mem = _tmp_mem()
     bid = scenarios.pick_borrower("ptp_memory")
 
-    orc1 = _fresh_orc(mem)
+    orc1 = _fresh_orc(mem, llm=llm)
     orc1.start(borrower_id=bid)
     for utt in scenarios.PTP_MEMORY["call1"]:
         orc1.handle(utt)
     s1 = orc1.end()
 
-    orc2 = _fresh_orc(mem)
+    orc2 = _fresh_orc(mem, llm=llm)
     start2 = orc2.start(borrower_id=bid)
     for utt in scenarios.PTP_MEMORY["call2"]:
         orc2.handle(utt)
@@ -192,21 +192,37 @@ def eval_memory() -> dict:
     }
 
 
-def run_all() -> dict:
+def run_all(use_llm: bool = False) -> dict:
+    if use_llm:
+        if not settings.ANTHROPIC_API_KEY:
+            print("[ERROR] ANTHROPIC_API_KEY is not set. Refusing to run LLM evaluation without an API key.", file=sys.stderr)
+            sys.exit(1)
+        from core.llm import AnthropicLLM
+        llm = AnthropicLLM()
+        out_path = settings.ROOT / "eval" / "results_llm.json"
+    else:
+        llm = NullLLM()
+        out_path = settings.ROOT / "eval" / "results.json"
+
     results = {
         "intents": eval_intents(),
-        "scenarios": eval_scenarios(),
-        "root_cause": eval_root_cause(),
-        "memory_learning": eval_memory(),
+        "scenarios": eval_scenarios(llm=llm),
+        "root_cause": eval_root_cause(llm=llm),
+        "memory_learning": eval_memory(llm=llm),
     }
-    out_path = settings.ROOT / "eval" / "results.json"
     out_path.write_text(json.dumps(results, indent=2, default=str), encoding="utf-8")
     return results
 
 
 if __name__ == "__main__":
-    r = run_all()
+    import argparse
+    parser = argparse.ArgumentParser(description="Evaluate agent performance")
+    parser.add_argument("--llm", action="store_true", help="Run evaluation with real AnthropicLLM (requires ANTHROPIC_API_KEY)")
+    args = parser.parse_args()
+
+    r = run_all(use_llm=args.llm)
     o = r["scenarios"]["overall"]
+    dest_file = "eval/results_llm.json" if args.llm else "eval/results.json"
     print("=== EVALUATION RESULTS ===")
     print(f"intent accuracy        : {r['intents']['intent_accuracy']}")
     print(f"resolution rate        : {o['resolution_rate']}")
@@ -217,4 +233,5 @@ if __name__ == "__main__":
     m = r["memory_learning"]
     print(f"memory: call1={m['call1_turns']} turns -> call2={m['call2_turns']} turns "
           f"(saved {m['turns_saved']}, memory_aware={m['call2_memory_aware']})")
-    print("\nwrote eval/results.json")
+    print(f"\nwrote {dest_file}")
+
