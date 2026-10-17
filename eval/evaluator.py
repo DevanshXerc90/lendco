@@ -165,31 +165,55 @@ def eval_root_cause(n: int = 25, llm=None) -> dict:
     return {"root_cause_accuracy": round(correct / (total or 1), 3), "samples": total}
 
 
-def eval_memory(llm=None) -> dict:
-    """Continuous learning: a repeat interaction should be faster + memory-aware."""
-    mem = _tmp_mem()
-    bid = scenarios.pick_borrower("ptp_memory")
+def eval_memory(n_borrowers: int = 20, llm=None) -> dict:
+    """Continuous learning: a repeat interaction should be faster + memory-aware across borrowers."""
+    borrowers = json.loads((settings.DATA_DIR / "borrowers.json").read_text(encoding="utf-8"))
+    sample = borrowers[:n_borrowers]
 
-    orc1 = _fresh_orc(mem, llm=llm)
-    orc1.start(borrower_id=bid)
-    for utt in scenarios.PTP_MEMORY["call1"]:
-        orc1.handle(utt)
-    s1 = orc1.end()
+    c1_turns = []
+    c2_turns = []
+    mem_aware = []
+    last_best = None
 
-    orc2 = _fresh_orc(mem, llm=llm)
-    start2 = orc2.start(borrower_id=bid)
-    for utt in scenarios.PTP_MEMORY["call2"]:
-        orc2.handle(utt)
-    s2 = orc2.end()
+    for b in sample:
+        mem = _tmp_mem()
+        orc1 = _fresh_orc(mem, llm=llm)
+        orc1.start(borrower_id=b["borrower_id"])
+        for utt in scenarios.PTP_MEMORY["call1"]:
+            orc1.handle(utt)
+        s1 = orc1.end()
+        c1_turns.append(s1["turns"])
 
-    best = mem.best_resolution_path("promise_to_pay")
+        orc2 = _fresh_orc(mem, llm=llm)
+        start2 = orc2.start(borrower_id=b["borrower_id"])
+        mem_aware.append(bool(start2.get("memory_aware")))
+        for utt in scenarios.PTP_MEMORY["call2"]:
+            orc2.handle(utt)
+        s2 = orc2.end()
+        c2_turns.append(s2["turns"])
+
+        last_best = mem.best_resolution_path("promise_to_pay")
+
+    mean_c1 = round(sum(c1_turns) / len(c1_turns), 2)
+    mean_c2 = round(sum(c2_turns) / len(c2_turns), 2)
+    share_aware = round(sum(mem_aware) / len(mem_aware), 3)
+
     return {
-        "call1_turns": s1["turns"],
-        "call2_memory_aware": start2["memory_aware"],
-        "call2_turns": s2["turns"],
-        "turns_saved": s1["turns"] - s2["turns"],
-        "learned_resolution_path": best,
+        "borrowers_tested": len(sample),
+        "call1_turns": mean_c1,
+        "call2_turns": mean_c2,
+        "call1_mean": mean_c1,
+        "call1_min": min(c1_turns),
+        "call1_max": max(c1_turns),
+        "call2_mean": mean_c2,
+        "call2_min": min(c2_turns),
+        "call2_max": max(c2_turns),
+        "share_memory_aware": share_aware,
+        "call2_memory_aware": all(mem_aware),
+        "turns_saved": round(mean_c1 - mean_c2, 2),
+        "learned_resolution_path": last_best,
     }
+
 
 
 def run_all(use_llm: bool = False) -> dict:
@@ -231,7 +255,9 @@ if __name__ == "__main__":
     print(f"redundant question rate: {o['redundant_question_rate']}")
     print(f"root-cause accuracy    : {r['root_cause']['root_cause_accuracy']} (n={r['root_cause']['samples']})")
     m = r["memory_learning"]
-    print(f"memory: call1={m['call1_turns']} turns -> call2={m['call2_turns']} turns "
-          f"(saved {m['turns_saved']}, memory_aware={m['call2_memory_aware']})")
+    print(f"memory (n={m.get('borrowers_tested', 1)}): call1 mean={m['call1_mean']} (min={m['call1_min']}, max={m['call1_max']}) -> "
+          f"call2 mean={m['call2_mean']} (min={m['call2_min']}, max={m['call2_max']}), "
+          f"share_memory_aware={m['share_memory_aware']*100:.1f}%, saved={m['turns_saved']}")
     print(f"\nwrote {dest_file}")
+
 
