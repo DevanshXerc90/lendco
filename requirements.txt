@@ -33,3 +33,8 @@ anthropic>=0.39
 
 # Tests
 pytest>=8.0
+
+# LangChain integration (optional)
+langchain-core>=0.1.0
+
+
