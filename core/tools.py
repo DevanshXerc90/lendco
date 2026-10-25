@@ -29,6 +29,7 @@ class ToolContext:
     session_id: str
     trace: list = field(default_factory=list)
     retrieved_docs: set = field(default_factory=set)  # KB docs actually retrieved this turn
+    retrieved: list = field(default_factory=list)     # full result dicts (for citations)
 
 
 def _log(ctx: ToolContext, name: str, args: dict, result_summary: str):
@@ -160,6 +161,7 @@ def search_knowledge_base(args, ctx: ToolContext) -> dict:
     for h in hits:
         ctx.retrieved_docs.add(h.doc_id)
     out = {"query": query, "results": [{"doc_id": h.doc_id, "title": h.title, "text": h.text, "score": h.score} for h in hits]}
+    ctx.retrieved.extend(out["results"])
     if not hits:
         out["note"] = "no matching policy document found — do not claim a policy here"
     _log(ctx, "search_knowledge_base", args, f"hits={[h.doc_id for h in hits]}")

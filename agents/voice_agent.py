@@ -76,6 +76,21 @@ POLICY_INTENTS = {"penalty_inquiry", "penalty_waiver", "payment_failure", "settl
                   "foreclosure", "interest_paid"}
 
 
+def _grounding(tool_ctx: ToolContext) -> list[dict]:
+    """Citations for this turn: the documents actually retrieved, deduplicated.
+
+    Returned to the UI / API as {doc_id, title, matched_sentence}.
+    """
+    out, seen = [], set()
+    for r in tool_ctx.retrieved:
+        if r["doc_id"] in seen:
+            continue
+        seen.add(r["doc_id"])
+        snippet = " ".join(r["text"].split())[:240]
+        out.append({"doc_id": r["doc_id"], "title": r.get("title", ""), "matched_sentence": snippet})
+    return out
+
+
 class VoiceAgent:
     def __init__(self, llm, memory):
         self.llm = llm
@@ -139,7 +154,8 @@ class VoiceAgent:
                         text = self._raise_unverified(tool_ctx, query, diagnosis.intent)
                         action = "ticket_created"
 
-        return {"text": text, "tool_trace": tool_ctx.trace, "action": action}
+        return {"text": text, "tool_trace": tool_ctx.trace, "action": action,
+                "grounding": _grounding(tool_ctx)}
 
     @staticmethod
     def _raise_unverified(tool_ctx: ToolContext, query: str, intent: str) -> str:
@@ -174,7 +190,8 @@ class VoiceAgent:
                 return {"text": text, "tool_trace": tool_ctx.trace, "action": "ticket_created"}
         handler = getattr(self, f"_h_{intent}", self._h_general_faq)
         text, action = handler(context, recall, diagnosis, collected, tool_ctx)
-        return {"text": text, "tool_trace": tool_ctx.trace, "action": action}
+        return {"text": text, "tool_trace": tool_ctx.trace, "action": action,
+                "grounding": _grounding(tool_ctx)}
 
     # -- per-intent handlers --------------------------------------------------
     def _analytics(self, tool_ctx):
