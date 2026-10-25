@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+from config import settings  # noqa: E402
 from platforms.common import load, append_runtime, read_runtime, next_id, require_platform_key  # noqa: E402
 from core.dates import iso_now  # noqa: E402
 
@@ -17,7 +18,7 @@ app = FastAPI(title="Support Platform", version="1.0")
 _SEED_TICKETS = load("tickets")
 
 
-PRIORITIES = {"low", "medium", "high", "urgent"}
+PRIORITIES = set(settings.TICKET_PRIORITIES)
 
 
 class NewTicket(BaseModel):
