@@ -93,8 +93,10 @@ def _redact_borrower(b: dict) -> dict:
     return out
 
 
-if not settings.DEMO_API_KEY:
-    print("[api] DEMO_API_KEY not set - operator endpoints (/api/borrowers, /api/scenario) are open. This is demo mode.")
+# Fail fast on invalid configuration, then print the running modes (never keys).
+settings.validate()
+for _line in settings.startup_summary():
+    print(_line)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
