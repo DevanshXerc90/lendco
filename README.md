@@ -45,7 +45,7 @@ python -m eval.evaluator
 # 5. verify LangChain LCEL citation parity
 python -m eval.lcel_parity
 
-# 6. run full test suite (23 passing tests offline)
+# 6. run full test suite (121 tests, all offline — no API keys needed)
 python -m pytest
 
 # 7. build the analytics + evaluation dashboard -> dashboard/report.html
@@ -56,6 +56,9 @@ python -m app.cli --scenario waiver          # scripted demo
 python -m app.cli --scenario ptp_memory      # the two-call MEMORY demo (scenario 6)
 python -m app.cli --borrower BRW00010        # interactive (type to the agent)
 python -m app.cli --borrower BRW00010 --voice  # local mic + speaker (set STT/TTS backends)
+
+# 9. serve the HTTP API (optional; the demo console pages are static files in public/)
+uvicorn api.index:app --port 8000   # API + Swagger docs on /api/docs
 ```
 
 > **Runs with zero API keys.** Without `ANTHROPIC_API_KEY` the agent uses a deterministic planner that still calls tools and grounds answers; with a key it runs a full LLM tool-use loop (`--llm` mode). Without `faster-whisper`/`pyttsx3` it uses typed input / printed output. Copy `.env.example` to `.env` to configure.
@@ -88,15 +91,30 @@ The **Knowledge Agent** is ported to LangChain Expression Language in [`agents/k
 
 ### 3. Policy Grounding Guardrail
 To ensure zero hallucinations on company policies:
-- In `VoiceAgent.respond_llm` and `AnthropicLLM.run_agent`, if an utterance matches a policy intent (`penalty_inquiry`, `penalty_waiver`, `payment_failure`, `settlement_request`, `foreclosure`, `interest_paid`) and the generated text lacks an explicit KB citation (`\d{2}_[a-z_]+`), the agent forces a `search_knowledge_base` retrieval and retries the LLM once.
-- If the retry remains ungrounded, the agent never returns an uncited policy claim; instead, it raises a support ticket (`ticket_created`) and delivers a safe fallback informing the borrower that their account policy will be confirmed by a specialist.
-- Unit tested for both paths in [`tests/test_grounding_retry.py`](tests/test_grounding_retry.py).
+- In `VoiceAgent.respond_llm` and `AnthropicLLM.run_agent`, if an utterance matches a policy intent (`penalty_inquiry`, `penalty_waiver`, `payment_failure`, `settlement_request`, `foreclosure`, `interest_paid`), the response must cite a document that **actually exists in the knowledge base and was retrieved this turn** (`core.rag.RAG.verify_citations`). A citation-shaped string naming a missing document (e.g. `99_fake_policy`) counts as fabricated, not grounded.
+- An ungrounded answer forces one `search_knowledge_base` retry. If retrieval returns nothing, the agent says the policy still needs checking instead of guessing; if the retry still cannot be grounded, it raises exactly one support ticket (`ticket_created`) and delivers the safe fallback.
+- Tool arguments are validated before execution and side effects are de-duplicated within a turn (`core/tools.py`); retrieved text and tool outputs are treated as data, never as instructions.
+- Unit tested in [`tests/test_grounding_retry.py`](tests/test_grounding_retry.py) and [`tests/test_rag_and_tools.py`](tests/test_rag_and_tools.py).
 
 ### 4. 3-Tier SQLite Memory Architecture
 - **Tier 1 (Borrower Memory)**: Key-value facts, preferred contact times, and commitments across calls (e.g. promise-to-pay date and amount).
 - **Tier 2 (Conversation History)**: Complete turn transcripts, sentiment trajectories, and resolved statuses.
 - **Tier 3 (Agent Memory / Continuous Learning)**: Tracks success/failure counts and average turns per intent and resolution path, allowing the orchestrator to dynamically prefer the most efficient paths over time.
 - **Slot-Based Derivation**: Categorizes slots as either *derivable* from unified context (e.g., installments remaining, overdue balance) or *ask-only* (e.g., date of future payment). By never asking for derivable values, the redundant question rate is strictly **0.0%**.
+- **PII hygiene**: free text before it is persisted (FAQ questions, slot answers, commitment reasons, transcripts) is scrubbed of PAN, phone number and email (`core.memory.scrub`).
+
+### 5. HTTP API & Authentication
+The serverless API (`api/index.py`) serves the demo console and dashboards:
+
+| Endpoint | Auth | Purpose |
+|---|---|---|
+| `POST /api/auth/login` | borrower knows the registered phone | issues an 8-hour HMAC-signed bearer token |
+| `GET /api/borrowers/{id}`, `/api/payments`, `/api/gateway-logs`, `/api/tickets`, `/api/analytics/{id}` | borrower token **or** operator key | a token scoped to another borrower gets **403** |
+| `GET /api/borrowers`, `POST /api/scenario` | operator key (`X-API-Key`) | unfiltered lists / side-effecting runner |
+| `POST /api/chat` | borrower token or operator key | one turn of the agent |
+| `/api/documents`, `/api/scenarios`, `/api/health`, `/api/eval` | none | public reference data |
+
+Bad input returns **400** (malformed ids), **401** (missing/invalid credential), **403** (wrong borrower or missing operator key), **404** (no such record/workflow) or **422** (invalid amount, field, priority). Mutating endpoints on the internal platform services additionally expect a shared `X-Platform-Key` when `PLATFORM_API_KEY` is configured. See "Known limitations" for what this deliberately does *not* do.
 
 ---
 
@@ -161,23 +179,43 @@ python -m eval.lcel_parity
 # 4. Optional: Run LLM evaluation (requires ANTHROPIC_API_KEY) -> writes eval/results_llm.json
 python -m eval.evaluator --llm
 
-# 5. Run complete test suite (all 23 tests pass offline)
+# 5. Run complete test suite (all 121 tests pass offline)
 python -m pytest
 ```
 
 ---
 
 ## Test Suite
-The repository includes 23 unit and integration tests passing offline with zero external API dependencies:
-- `tests/test_system.py` (13 tests): Context engine, amortization calculations, intent diagnosis, slot derivation, and end-to-end scenarios.
-- `tests/test_lcel.py` (2 tests): LCEL Knowledge Agent parity and interface compatibility.
-- `tests/test_grounding_retry.py` (2 tests): Forced KB search on ungrounded replies and safe ticket creation fallbacks.
-- `tests/test_anthropic_loop.py` (5 tests): Mocked Anthropic client tool-use loop, multi-tool turns, iteration bounds, character truncation, and key validation.
-- `tests/test_memory_eval.py` (1 test): Multi-borrower memory evaluation across 20 borrowers.
+The repository includes 121 unit and integration tests, all passing offline with zero external API dependencies:
+- `tests/test_system.py` (13): Context engine, amortization, intent diagnosis, slot derivation, end-to-end scenarios.
+- `tests/test_dates_and_calcs.py` (26): Controllable clock, calendar-month due dates, overdue/partial/duplicate payment math (Decimal).
+- `tests/test_api_validation.py` (24): Login, cross-borrower 403s, operator key, malformed ids, invalid amounts/fields, platform key.
+- `tests/test_api_flows.py` (7): End-to-end chat, analytics, citations and scenario runner through the HTTP API.
+- `tests/test_rag_and_tools.py` (28): Tool-argument validation, one-side-effect-per-turn, citation verification, empty retrieval, model failure fallback, PII scrubbing.
+- `tests/test_service_failures.py` (13): Downstream outages, marked fallback writes, malformed responses, timeouts, config validation.
+- `tests/test_grounding_retry.py` (2): Forced KB search on ungrounded replies and the safe ticket fallback.
+- `tests/test_anthropic_loop.py` (5): Mocked Anthropic client tool-use loop, multi-tool turns, iteration bounds, truncation.
+- `tests/test_lcel.py` (2): LCEL Knowledge Agent parity and interface compatibility.
+- `tests/test_memory_eval.py` (1): Multi-borrower memory evaluation across 20 borrowers.
 
 ```bash
 python -m pytest -q
 ```
+
+There is no configured linter in this repository; syntax is checked with `python -m compileall`.
+
+---
+
+## Known Limitations
+Honest boundaries of this portfolio project — none of these are hidden behind marketing claims:
+
+- **Demo mode is open.** `POST /api/auth/login` issues real HMAC-signed borrower tokens and token scope is enforced (a token for another borrower gets 403), but with `DEMO_API_KEY` unset the operator endpoints and unauthenticated reads are open, by design, and the API prints a warning at startup. Set `API_SECRET` + `DEMO_API_KEY` to lock it down.
+- **No user accounts, refresh tokens, rate limiting or audit log.** Auth is two static keys plus one signed token — deliberately small, not a banking identity system.
+- **Synthetic data.** All 120 borrowers, 1,813 payments and 22 KB documents are generated (`python -m data.generate`), and the five "platforms" are local mock services backed by JSON files. Metrics in this README are measured on that synthetic set, not on real customers.
+- **Fallback writes are marked, not audited.** When a platform service is down, tickets/payment links/workflow runs are stored in `data/runtime/` with `fallback: True`; nothing reconciles them later.
+- **Memory stores plaintext SQLite** on local disk (with PAN/phone/email scrubbed), not encrypted at rest.
+- **LLM path is optional.** Without `ANTHROPIC_API_KEY` everything runs the deterministic planner; the LLM tool-use loop is covered by mocked tests, not by a live-model test suite.
+- **One process, no horizontal scale.** In-process TF-IDF index, in-memory singletons and SQLite are chosen for clarity, not throughput.
 
 ---
 

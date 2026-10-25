@@ -82,3 +82,58 @@ DEMO_API_KEY = os.getenv("DEMO_API_KEY", "").strip()
 # Shared key between the agent and the internal platform services (sent as
 # X-Platform-Key). Empty = the services rely on loopback binding alone.
 PLATFORM_API_KEY = os.getenv("PLATFORM_API_KEY", "").strip()
+
+# --- Tool / platform action allowlists (enforced by core.tools *and* the
+# --- platform services, so a stray LLM tool call cannot do the unexpected) ---
+# CRM fields an agent may edit. Identity and loan facts are read-only.
+CRM_EDITABLE_FIELDS = ("preferred_language", "email", "contact_note")
+
+# Automations the workflow platform knows how to run.
+WORKFLOW_NAMES = ("generic", "reregister_mandate", "send_foreclosure_statement",
+                  "initiate_penalty_reversal")
+
+# Ticket priorities understood by the support platform.
+TICKET_PRIORITIES = ("low", "medium", "high", "urgent")
+
+# Payment-history status filter values.
+PAYMENT_STATUSES = ("success", "failed", "partial", "missed", "auto_debit_failed")
+
+# Values each backend setting accepts. Anything else is a configuration error,
+# not something to guess at silently.
+VALID_BACKENDS = {
+    "EMBEDDINGS_BACKEND": ("tfidf", "sentence-transformers"),
+    "STT_BACKEND": ("text", "whisper"),
+    "TTS_BACKEND": ("print", "pyttsx3"),
+    "CRM_BACKEND": ("hubspot", "mock"),
+    "PAYMENTS_BACKEND": ("stripe", "razorpay", "mock"),
+}
+
+
+def validate() -> None:
+    """Fail fast with a clear message when configuration is invalid.
+
+    Called at application startup. Missing optional API keys are *not* fatal —
+    the app is designed to run offline with its mock platforms — but a backend
+    name nobody supports must never be guessed at.
+    """
+    problems = []
+    for name, allowed in VALID_BACKENDS.items():
+        value = globals()[name]
+        if value not in allowed:
+            problems.append(f"{name}={value!r} is not supported; expected one of {list(allowed)}")
+    if problems:
+        raise RuntimeError("Invalid configuration:\n  - " + "\n  - ".join(problems))
+
+
+def startup_summary() -> list[str]:
+    """Human-readable startup state — modes only, never key values."""
+    lines = []
+    if not ANTHROPIC_API_KEY:
+        lines.append("[config] ANTHROPIC_API_KEY not set - using the rule-based planner.")
+    if not API_SECRET:
+        lines.append("[config] API_SECRET not set - borrower tokens reset when the API restarts.")
+    if not DEMO_API_KEY:
+        lines.append("[config] DEMO_API_KEY not set - operator endpoints are open (demo mode).")
+    lines.append(f"[config] LLM={LLM_MODEL if ANTHROPIC_API_KEY else 'rule-based'} "
+                 f"embeddings={EMBEDDINGS_BACKEND} payments={PAYMENTS_BACKEND} crm={CRM_BACKEND}")
+    return lines

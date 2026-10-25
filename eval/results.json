@@ -35,8 +35,8 @@
         "intent_accuracy": 1.0,
         "avg_turns": 1.0,
         "top_tools": [
-          "get_loan_analytics",
-          "search_knowledge_base"
+          "search_knowledge_base",
+          "get_loan_analytics"
         ]
       },
       "penalty": {
@@ -48,9 +48,9 @@
         "intent_accuracy": 1.0,
         "avg_turns": 1.0,
         "top_tools": [
+          "search_knowledge_base",
           "get_loan_analytics",
-          "get_gateway_logs",
-          "search_knowledge_base"
+          "get_gateway_logs"
         ]
       },
       "payment_failure": {
@@ -62,8 +62,8 @@
         "intent_accuracy": 1.0,
         "avg_turns": 1.0,
         "top_tools": [
-          "get_gateway_logs",
           "search_knowledge_base",
+          "get_gateway_logs",
           "create_payment_link"
         ]
       },
@@ -76,8 +76,8 @@
         "intent_accuracy": 1.0,
         "avg_turns": 2.0,
         "top_tools": [
-          "get_gateway_logs",
           "search_knowledge_base",
+          "get_gateway_logs",
           "create_support_ticket",
           "create_payment_link"
         ]
@@ -91,8 +91,8 @@
         "intent_accuracy": 1.0,
         "avg_turns": 1.0,
         "top_tools": [
-          "get_loan_analytics",
           "search_knowledge_base",
+          "get_loan_analytics",
           "trigger_workflow"
         ]
       },

@@ -93,8 +93,20 @@ def _redact_borrower(b: dict) -> dict:
     return out
 
 
-if not settings.DEMO_API_KEY:
-    print("[api] DEMO_API_KEY not set - operator endpoints (/api/borrowers, /api/scenario) are open. This is demo mode.")
+def _tools(result: dict) -> list[str]:
+    """Tool names executed during a turn (orchestrator returns `tool_trace`)."""
+    return [t.get("tool") for t in result.get("tool_trace", [])]
+
+
+def _greeting(start_info: dict) -> str:
+    """The session opener (orchestrator.start returns it as `text`)."""
+    return start_info.get("greeting") or start_info.get("text", "")
+
+
+# Fail fast on invalid configuration, then print the running modes (never keys).
+settings.validate()
+for _line in settings.startup_summary():
+    print(_line)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -235,11 +247,15 @@ def get_analytics(borrower_id: str, authorization: str | None = Header(None),
     ctx = ContextEngine().build(borrower_id=borrower_id)
     if not ctx.found:
         raise HTTPException(404, f"Borrower {borrower_id} not found")
-    return {
-        "borrower_id": borrower_id,
-        "analytics": ctx.analytics,
-        "borrower": ctx.borrower,
-        "operational": ctx.operational,
+    return {            "borrower_id": borrower_id,
+            "analytics": ctx.analytics,
+            "borrower": ctx.profile,       # UnifiedContext has profile, not borrower
+            "operational": {
+                "delinquency_status": ctx.delinquency_status,
+                "dpd_days": ctx.dpd_days,
+                "open_tickets": ctx.open_tickets,
+                "recent_failures": ctx.recent_failures,
+            },
     }
 
 
@@ -267,9 +283,9 @@ def chat(req: ChatRequest, authorization: str | None = Header(None),
         "text": result.get("text", ""),
         "intent": result.get("intent", ""),
         "action": result.get("action", ""),
-        "tools_used": result.get("tools_used", []),
+        "tools_used": _tools(result),
         "grounding": result.get("grounding", []),
-        "greeting": start_info.get("greeting", ""),
+        "greeting": _greeting(start_info),
         "summary": summary,
     }
 
@@ -297,7 +313,8 @@ def run_scenario(req: ScenarioRequest):
         for msg in PTP_MEMORY["call1"]:
             r = o1.handle(msg)
             call1.append({"user": msg, "agent": r.get("text", ""), "intent": r.get("intent", ""),
-                          "tools": r.get("tools_used", []), "action": r.get("action", "")})
+                          "tools": _tools(r), "action": r.get("action", ""),
+                          "grounding": r.get("grounding", [])})
         s1 = o1.end()
 
         # Call 2 — same memory, new orchestrator
@@ -307,15 +324,16 @@ def run_scenario(req: ScenarioRequest):
         for msg in PTP_MEMORY["call2"]:
             r = o2.handle(msg)
             call2.append({"user": msg, "agent": r.get("text", ""), "intent": r.get("intent", ""),
-                          "tools": r.get("tools_used", []), "action": r.get("action", "")})
+                          "tools": _tools(r), "action": r.get("action", ""),
+                          "grounding": r.get("grounding", [])})
         s2 = o2.end()
 
         return {
             "scenario": "ptp_memory",
             "borrower_id": bid,
-            "call1": {"greeting": s1_start.get("greeting", ""), "turns": call1, "summary": s1},
+            "call1": {"greeting": _greeting(s1_start), "turns": call1, "summary": s1},
             "call2": {
-                "greeting": s2_start.get("greeting", ""),
+                "greeting": _greeting(s2_start),
                 "memory_aware": s2_start.get("memory_aware", False),
                 "turns": call2,
                 "summary": s2,
@@ -334,12 +352,13 @@ def run_scenario(req: ScenarioRequest):
     for msg in scripts[req.scenario]:
         r = orc.handle(msg)
         turns.append({"user": msg, "agent": r.get("text", ""), "intent": r.get("intent", ""),
-                      "tools": r.get("tools_used", []), "action": r.get("action", "")})
+                      "tools": _tools(r), "action": r.get("action", ""),
+                      "grounding": r.get("grounding", [])})
     summary = orc.end()
     return {
         "scenario": req.scenario,
         "borrower_id": bid,
-        "greeting": start_info.get("greeting", ""),
+        "greeting": _greeting(start_info),
         "turns": turns,
         "summary": summary,
     }
