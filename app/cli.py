@@ -19,6 +19,7 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 from agents.orchestrator import Orchestrator  # noqa: E402
+from config import settings  # noqa: E402
 from core.llm import get_llm  # noqa: E402
 from app import scenarios  # noqa: E402
 
@@ -123,6 +124,7 @@ def run_ptp_memory(debug=True):
 
 
 def main():
+    settings.validate()  # clear startup error instead of a confusing failure later
     ap = argparse.ArgumentParser(description="LendCo inbound voice agent")
     ap.add_argument("--borrower", help="borrower id, e.g. BRW00010")
     ap.add_argument("--phone", help="registered phone, e.g. +9188...")
