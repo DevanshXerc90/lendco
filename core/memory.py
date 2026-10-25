@@ -19,6 +19,7 @@ outcome-oriented (proven resolution path).
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 from contextlib import contextmanager
 
@@ -59,6 +60,25 @@ CREATE TABLE IF NOT EXISTS agent_memory (
 );
 """
 
+# Long-term memory should not become a second copy of the borrower's KYC data.
+_PAN_RE = re.compile(r"\b([A-Z]{5})\d{4}([A-Z])\b")
+_PHONE_RE = re.compile(r"(?:\+91[\s-]?)?\b\d{10}\b")
+_EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
+
+
+def scrub(text):
+    """Mask PAN, phone and email in free text before it is persisted.
+
+    Anything a borrower says can end up in memory (FAQ questions, answers,
+    commitment reasons, transcripts); we keep the conversation but not the
+    identifiers, mirroring the masking the public API already applies.
+    """
+    if not isinstance(text, str) or not text:
+        return text
+    text = _PAN_RE.sub(lambda m: f"{m.group(1)}****{m.group(2)}", text)
+    text = _PHONE_RE.sub(lambda m: "*" * (len(m.group(0)) - 3) + m.group(0)[-3:], text)
+    return _EMAIL_RE.sub("***@***.***", text)
+
 
 class MemoryManager:
     def __init__(self, db_path: Path | None = None):
@@ -93,6 +113,7 @@ class MemoryManager:
 
     # ---------------------------------------------------- Commitments (PTP)
     def record_commitment(self, borrower_id: str, date: str, amount: float, reason: str) -> dict:
+        reason = scrub(reason)
         with self._conn() as c:
             cur = c.execute(
                 "INSERT INTO commitments(borrower_id,date,amount,reason,kept,created_at) VALUES(?,?,?,?,?,?)",
@@ -115,6 +136,7 @@ class MemoryManager:
 
     # ---------------------------------------------------- FAQs
     def record_faq(self, borrower_id: str, intent: str, question: str) -> None:
+        question = scrub(question)
         with self._conn() as c:
             c.execute(
                 "INSERT INTO faqs(borrower_id,question,intent,count,last_asked) VALUES(?,?,?,1,?) "
@@ -131,6 +153,7 @@ class MemoryManager:
 
     # ---------------------------------------------------- Conversation memory
     def record_qa(self, session_id: str, borrower_id: str, slot: str, question: str, answer: str) -> None:
+        question, answer = scrub(question), scrub(answer)
         with self._conn() as c:
             c.execute(
                 "INSERT INTO qa_pairs(session_id,borrower_id,slot,question,answer,asked_at) VALUES(?,?,?,?,?,?)",
@@ -143,6 +166,11 @@ class MemoryManager:
         return {r["slot"] for r in rows}
 
     def save_conversation(self, session: dict) -> None:
+        transcript = [
+            {**turn, "text": scrub(turn.get("text", ""))}
+            if isinstance(turn, dict) else turn
+            for turn in session.get("transcript", [])
+        ]
         with self._conn() as c:
             c.execute(
                 "INSERT OR REPLACE INTO conversations"
@@ -152,7 +180,7 @@ class MemoryManager:
                     session["session_id"], session["borrower_id"], session.get("intent"),
                     session.get("started_at"), session.get("ended_at", iso_now()),
                     1 if session.get("resolved") else 0, session.get("sentiment"),
-                    session.get("turns", 0), json.dumps(session.get("transcript", [])),
+                    session.get("turns", 0), json.dumps(transcript),
                     json.dumps(session.get("outstanding", [])),
                 ),
             )
