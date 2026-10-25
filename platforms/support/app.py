@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 from platforms.common import load, append_runtime, read_runtime, next_id  # noqa: E402
+from core.dates import iso_now  # noqa: E402
 
 app = FastAPI(title="Support Platform", version="1.0")
 _SEED_TICKETS = load("tickets")
@@ -66,8 +67,8 @@ def create_ticket(t: NewTicket):
         "priority": t.priority,
         "status": "open",
         "channel": t.channel,
-        "created_at": "2026-06-09T10:00:00",
-        "updated_at": "2026-06-09T10:00:00",
+        "created_at": iso_now(),
+        "updated_at": iso_now(),
         "resolution": None,
         "created_by": "voice_agent",
     }

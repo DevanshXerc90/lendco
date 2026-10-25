@@ -21,14 +21,12 @@ from __future__ import annotations
 import json
 import sqlite3
 from contextlib import contextmanager
-from datetime import datetime
 
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 from config import settings  # noqa: E402
-
-NOW = lambda: datetime(2026, 6, 9, 10, 0, 0).isoformat()  # deterministic clock for demos
+from core.dates import iso_now  # noqa: E402
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS borrower_memory (
@@ -85,7 +83,7 @@ class MemoryManager:
             c.execute(
                 "INSERT INTO borrower_memory(borrower_id,key,value,updated_at) VALUES(?,?,?,?) "
                 "ON CONFLICT(borrower_id,key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
-                (borrower_id, key, json.dumps(value), NOW()),
+                (borrower_id, key, json.dumps(value), iso_now()),
             )
 
     def get_preferences(self, borrower_id: str) -> dict:
@@ -98,7 +96,7 @@ class MemoryManager:
         with self._conn() as c:
             cur = c.execute(
                 "INSERT INTO commitments(borrower_id,date,amount,reason,kept,created_at) VALUES(?,?,?,?,?,?)",
-                (borrower_id, date, amount, reason, None, NOW()),
+                (borrower_id, date, amount, reason, None, iso_now()),
             )
             cid = cur.lastrowid
         return {"id": cid, "borrower_id": borrower_id, "date": date, "amount": amount, "reason": reason, "kept": None}
@@ -121,7 +119,7 @@ class MemoryManager:
             c.execute(
                 "INSERT INTO faqs(borrower_id,question,intent,count,last_asked) VALUES(?,?,?,1,?) "
                 "ON CONFLICT(borrower_id,intent) DO UPDATE SET count=count+1, last_asked=excluded.last_asked, question=excluded.question",
-                (borrower_id, question, intent, NOW()),
+                (borrower_id, question, intent, iso_now()),
             )
 
     def get_faqs(self, borrower_id: str) -> list[dict]:
@@ -136,7 +134,7 @@ class MemoryManager:
         with self._conn() as c:
             c.execute(
                 "INSERT INTO qa_pairs(session_id,borrower_id,slot,question,answer,asked_at) VALUES(?,?,?,?,?,?)",
-                (session_id, borrower_id, slot, question, answer, NOW()),
+                (session_id, borrower_id, slot, question, answer, iso_now()),
             )
 
     def get_asked_slots(self, borrower_id: str) -> set[str]:
@@ -152,7 +150,7 @@ class MemoryManager:
                 "VALUES(?,?,?,?,?,?,?,?,?,?)",
                 (
                     session["session_id"], session["borrower_id"], session.get("intent"),
-                    session.get("started_at"), session.get("ended_at", NOW()),
+                    session.get("started_at"), session.get("ended_at", iso_now()),
                     1 if session.get("resolved") else 0, session.get("sentiment"),
                     session.get("turns", 0), json.dumps(session.get("transcript", [])),
                     json.dumps(session.get("outstanding", [])),
@@ -181,8 +179,8 @@ class MemoryManager:
                 "VALUES(?,?,?,?,?,1,?) "
                 "ON CONFLICT(intent,resolution_path) DO UPDATE SET "
                 "success_count=success_count+?, fail_count=fail_count+?, total_turns=total_turns+?, runs=runs+1, updated_at=?",
-                (intent, resolution_path, 1 if success else 0, 0 if success else 1, turns, NOW(),
-                 1 if success else 0, 0 if success else 1, turns, NOW()),
+                (intent, resolution_path, 1 if success else 0, 0 if success else 1, turns, iso_now(),
+                 1 if success else 0, 0 if success else 1, turns, iso_now()),
             )
 
     def best_resolution_path(self, intent: str) -> dict | None:

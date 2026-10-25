@@ -23,6 +23,7 @@ from agents.voice_agent import VoiceAgent, rupee  # noqa: E402
 from core.tools import ToolContext  # noqa: E402
 from core.llm import get_llm  # noqa: E402
 from core.memory import get_memory  # noqa: E402
+from core.dates import iso_now  # noqa: E402
 
 _SENTIMENT = {
     "angry": ["angry", "furious", "ridiculous", "worst", "useless", "fed up", "cheated", "harass"],
@@ -80,7 +81,7 @@ class Orchestrator:
             "actions": [],
             "turns": 0,
             "escalated": False,
-            "started_at": "2026-06-09T10:00:00",
+            "started_at": iso_now(),
         }
 
         name = ctx.profile.get("name", "there")
