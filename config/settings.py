@@ -69,3 +69,16 @@ PLATFORM_PORTS = {
 
 # Deterministic seed so synthetic data + demos are reproducible.
 SEED = int(os.getenv("SEED", "42"))
+
+# --- API authentication (portfolio-level safeguards, see README) ---
+# Signs borrower session tokens issued by POST /api/auth/login. Empty means a
+# per-process random key is used, so no secret is ever committed to source.
+API_SECRET = os.getenv("API_SECRET", "").strip()
+
+# Operator key for the demo console endpoints (/api/borrowers, /api/scenario).
+# Empty = demo mode: those endpoints are open and a warning is printed.
+DEMO_API_KEY = os.getenv("DEMO_API_KEY", "").strip()
+
+# Shared key between the agent and the internal platform services (sent as
+# X-Platform-Key). Empty = the services rely on loopback binding alone.
+PLATFORM_API_KEY = os.getenv("PLATFORM_API_KEY", "").strip()

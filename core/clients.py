@@ -25,14 +25,20 @@ def _local(name: str) -> list[dict]:
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
 
 
+def _headers() -> dict:
+    """Shared platform key, only when one is configured (see settings)."""
+    return {"X-Platform-Key": settings.PLATFORM_API_KEY} if settings.PLATFORM_API_KEY else {}
+
+
 def _get(base: str, path: str, **params):
-    r = httpx.get(f"{base}{path}", params={k: v for k, v in params.items() if v is not None}, timeout=_TIMEOUT)
+    r = httpx.get(f"{base}{path}", params={k: v for k, v in params.items() if v is not None},
+                  headers=_headers(), timeout=_TIMEOUT)
     r.raise_for_status()
     return r.json()
 
 
 def _post(base: str, path: str, payload: dict):
-    r = httpx.post(f"{base}{path}", json=payload, timeout=_TIMEOUT)
+    r = httpx.post(f"{base}{path}", json=payload, headers=_headers(), timeout=_TIMEOUT)
     r.raise_for_status()
     return r.json()
 
@@ -106,7 +112,7 @@ class CRMClient:
 
 
 def _post_patch(base: str, path: str, payload: dict):
-    r = httpx.patch(f"{base}{path}", json=payload, timeout=_TIMEOUT)
+    r = httpx.patch(f"{base}{path}", json=payload, headers=_headers(), timeout=_TIMEOUT)
     r.raise_for_status()
     return r.json()
 

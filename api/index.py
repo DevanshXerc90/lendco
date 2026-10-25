@@ -18,10 +18,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from fastapi import FastAPI, HTTPException, Query  # noqa: E402
-from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
-from pydantic import BaseModel  # noqa: E402
+import re  # noqa: E402
 
+from fastapi import Depends, FastAPI, Header, HTTPException, Query  # noqa: E402
+from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
+from pydantic import BaseModel, Field  # noqa: E402
+
+from api import auth  # noqa: E402
 from config import settings  # noqa: E402
 
 # ---------- app setup -------------------------------------------------------
@@ -48,6 +51,52 @@ def _load(name: str) -> list[dict]:
     return json.loads(p.read_text(encoding="utf-8")) if p.exists() else []
 
 
+# ---------------------------------------------------------------- validation --
+BORROWER_ID_RE = re.compile(r"^BRW\d{5}$")
+
+
+def _check_borrower_id(borrower_id: str) -> str:
+    """Reject malformed ids early instead of scanning the data with them."""
+    if not BORROWER_ID_RE.match(borrower_id):
+        raise HTTPException(400, "Invalid borrower id: expected e.g. BRW00001.")
+    return borrower_id
+
+
+def _borrower_or_404(borrower_id: str) -> dict:
+    b = next((x for x in _load("borrowers") if x["borrower_id"] == borrower_id), None)
+    if not b:
+        raise HTTPException(404, f"Borrower {borrower_id} not found")
+    return b
+
+
+def _mask_phone(phone: str) -> str:
+    """Show the country code + first digits and the last three only."""
+    if len(phone) <= 8:
+        return "*" * len(phone)
+    return phone[:5] + "*" * (len(phone) - 8) + phone[-3:]
+
+
+def _mask_pan(pan: str) -> str:
+    """PAN policy (see KB): full PAN is never exposed — first 5 and last 1 only."""
+    if len(pan) < 10:
+        return "****"
+    return pan[:5] + "****" + pan[-1]
+
+
+def _redact_borrower(b: dict) -> dict:
+    """Copy of a borrower record with KYC identifiers masked."""
+    out = dict(b)
+    kyc = dict(out.get("kyc") or {})
+    if kyc.get("pan"):
+        kyc["pan"] = _mask_pan(kyc["pan"])
+    out["kyc"] = kyc
+    return out
+
+
+if not settings.DEMO_API_KEY:
+    print("[api] DEMO_API_KEY not set - operator endpoints (/api/borrowers, /api/scenario) are open. This is demo mode.")
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -58,14 +107,41 @@ def health():
     return {"status": "ok", "platforms": 5, "scenarios": 6, "mode": "serverless"}
 
 
+# ── Auth ──────────────────────────────────────────────────────────────────
+class LoginRequest(BaseModel):
+    borrower_id: str = Field(min_length=1, max_length=32)
+    phone: str = Field(min_length=4, max_length=32)
+
+
+@app.post("/api/auth/login")
+def login(req: LoginRequest):
+    """Sign in as a borrower with their registered phone number.
+
+    Returns a bearer token scoped to that borrower; every borrower-scoped
+    endpoint then rejects requests for anyone else's records.
+    """
+    _check_borrower_id(req.borrower_id)
+    b = _borrower_or_404(req.borrower_id)
+
+    supplied = re.sub(r"[\s\-]", "", req.phone)
+    known = b["phone"]
+    if supplied not in (known, known.removeprefix("+91")) and f"+91{supplied}" != known:
+        raise HTTPException(401, "Registered phone number does not match our records.")
+
+    token, expires = auth.issue_token(req.borrower_id)
+    return {"access_token": token, "token_type": "Bearer",
+            "expires_at": expires, "borrower_id": req.borrower_id}
+
+
 # ── CRM (borrowers) ────────────────────────────────────────────────────────
 @app.get("/api/borrowers")
-def list_borrowers():
+def list_borrowers(x_api_key: str | None = Header(None)):
+    auth.require_operator(x_api_key)
     return [
         {
             "borrower_id": b["borrower_id"],
             "name": b["name"],
-            "phone": b["phone"],
+            "phone": _mask_phone(b["phone"]),  # never list full phone numbers
             "loan_type": b.get("loan_type", "personal"),
             "loan_amount": b.get("loan_amount"),
             "emi_amount": b.get("emi_amount"),
@@ -77,21 +153,27 @@ def list_borrowers():
 
 
 @app.get("/api/borrowers/{borrower_id}")
-def get_borrower(borrower_id: str):
-    b = next((x for x in _load("borrowers") if x["borrower_id"] == borrower_id), None)
-    if not b:
-        raise HTTPException(404, f"Borrower {borrower_id} not found")
-    return b
+def get_borrower(borrower_id: str, authorization: str | None = Header(None),
+                 x_api_key: str | None = Header(None)):
+    _check_borrower_id(borrower_id)
+    auth.check_borrower_access(borrower_id, authorization, x_api_key)
+    return _redact_borrower(_borrower_or_404(borrower_id))
 
 
 # ── Payments ────────────────────────────────────────────────────────────────
 @app.get("/api/payments")
-def get_payments(borrower_id: str = Query(...)):
+def get_payments(borrower_id: str = Query(...), authorization: str | None = Header(None),
+                 x_api_key: str | None = Header(None)):
+    _check_borrower_id(borrower_id)
+    auth.check_borrower_access(borrower_id, authorization, x_api_key)
     return [p for p in _load("payments") if p["borrower_id"] == borrower_id]
 
 
 @app.get("/api/gateway-logs")
-def get_gateway_logs(borrower_id: str = Query(...)):
+def get_gateway_logs(borrower_id: str = Query(...), authorization: str | None = Header(None),
+                      x_api_key: str | None = Header(None)):
+    _check_borrower_id(borrower_id)
+    auth.check_borrower_access(borrower_id, authorization, x_api_key)
     return [
         {
             "payment_id": p["payment_id"],
@@ -111,10 +193,14 @@ def get_gateway_logs(borrower_id: str = Query(...)):
 
 # ── Support (tickets) ──────────────────────────────────────────────────────
 @app.get("/api/tickets")
-def get_tickets(borrower_id: str = Query(None)):
+def get_tickets(borrower_id: str = Query(None), authorization: str | None = Header(None),
+                x_api_key: str | None = Header(None)):
     tickets = _load("tickets")
     if borrower_id:
+        _check_borrower_id(borrower_id)
+        auth.check_borrower_access(borrower_id, authorization, x_api_key)
         return [t for t in tickets if t["borrower_id"] == borrower_id]
+    auth.require_operator(x_api_key)  # unfiltered list spans every borrower
     return tickets[:50]  # cap for list view
 
 
@@ -131,6 +217,8 @@ def list_documents():
 @app.get("/api/documents/{doc_id}")
 def get_document(doc_id: str):
     _ensure_data()
+    if not re.fullmatch(r"[A-Za-z0-9_\-]+", doc_id):
+        raise HTTPException(400, "Invalid document id.")  # never let '..' escape the KB folder
     p = settings.KB_DIR / f"{doc_id}.md"
     if not p.exists():
         raise HTTPException(404, f"Document {doc_id} not found")
@@ -139,7 +227,10 @@ def get_document(doc_id: str):
 
 # ── Context Engine analytics ───────────────────────────────────────────────
 @app.get("/api/analytics/{borrower_id}")
-def get_analytics(borrower_id: str):
+def get_analytics(borrower_id: str, authorization: str | None = Header(None),
+                  x_api_key: str | None = Header(None)):
+    _check_borrower_id(borrower_id)
+    auth.check_borrower_access(borrower_id, authorization, x_api_key)
     from core.context_engine import ContextEngine
     ctx = ContextEngine().build(borrower_id=borrower_id)
     if not ctx.found:
@@ -154,16 +245,19 @@ def get_analytics(borrower_id: str):
 
 # ── Agent chat ──────────────────────────────────────────────────────────────
 class ChatRequest(BaseModel):
-    borrower_id: str
-    message: str
+    borrower_id: str = Field(pattern=r"^BRW\d{5}$")
+    message: str = Field(default="", max_length=2000)  # empty = open the call / greeting
 
 
 @app.post("/api/chat")
-def chat(req: ChatRequest):
+def chat(req: ChatRequest, authorization: str | None = Header(None),
+         x_api_key: str | None = Header(None)):
     from core.memory import MemoryManager
     from core.llm import NullLLM
     from agents.orchestrator import Orchestrator
 
+    auth.check_borrower_access(req.borrower_id, authorization, x_api_key)
+    _borrower_or_404(req.borrower_id)
     mem = MemoryManager(db_path=tempfile.mktemp(suffix=".db"))
     orc = Orchestrator(memory=mem, llm=NullLLM())
     start_info = orc.start(borrower_id=req.borrower_id)
@@ -182,10 +276,10 @@ def chat(req: ChatRequest):
 
 # ── Scenario runner ─────────────────────────────────────────────────────────
 class ScenarioRequest(BaseModel):
-    scenario: str
+    scenario: str = Field(min_length=1, max_length=40)
 
 
-@app.post("/api/scenario")
+@app.post("/api/scenario", dependencies=[Depends(auth.require_operator)])
 def run_scenario(req: ScenarioRequest):
     from app.scenarios import SCRIPTS, PTP_MEMORY, pick_borrower
     from core.memory import MemoryManager

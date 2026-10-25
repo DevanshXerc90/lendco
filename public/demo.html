@@ -115,16 +115,37 @@
 
     let currentBorrower = '';
 
+    // Operator console: if the API is configured with an operator key
+    // (DEMO_API_KEY), send it as X-API-Key and ask for it on a 401/403.
+    const KEY_STORAGE = 'lendco_operator_key';
+    function withKey(headers = {}) {
+      const key = localStorage.getItem(KEY_STORAGE);
+      return key ? Object.assign({}, headers, { 'X-API-Key': key }) : headers;
+    }
+    async function apiFetch(url, opts = {}) {
+      opts.headers = withKey(opts.headers);
+      let res = await fetch(url, opts);
+      if (res.status === 401 || res.status === 403) {
+        const key = window.prompt('Operator API key (X-API-Key):');
+        if (key) {
+          localStorage.setItem(KEY_STORAGE, key);
+          opts.headers = withKey(opts.headers);
+          res = await fetch(url, opts);
+        }
+      }
+      return res;
+    }
+
     async function init() {
       try {
-        const bRes = await fetch('/api/borrowers');
+        const bRes = await apiFetch('/api/borrowers');
         const borrowers = await bRes.json();
         borrowerSelect.innerHTML = '<option value="">— Choose Borrower —</option>';
         borrowers.forEach(b => {
           borrowerSelect.innerHTML += `<option value="${b.borrower_id}">${b.borrower_id} — ${b.name} (${b.delinquency_status})</option>`;
         });
 
-        const sRes = await fetch('/api/scenarios');
+        const sRes = await apiFetch('/api/scenarios');
         const scenarios = await sRes.json();
         scenariosList.innerHTML = '';
         scenarios.forEach(s => {
@@ -150,7 +171,7 @@
       chatInput.disabled = false;
       sendBtn.disabled = false;
 
-      const b = await (await fetch(`/api/borrowers/${bid}`)).json();
+      const b = await (await apiFetch(`/api/borrowers/${bid}`)).json();
       activeName.innerText = b.name;
       activeId.innerText = bid;
       delinquencyBadge.style.display = 'inline-block';
@@ -159,7 +180,7 @@
 
       document.getElementById('analytics-loader').innerText = 'Loading...';
       try {
-        const data = await (await fetch(`/api/analytics/${bid}`)).json();
+        const data = await (await apiFetch(`/api/analytics/${bid}`)).json();
         const a = data.analytics;
         document.getElementById('meta-loan-type').innerText = a.loan_type;
         document.getElementById('meta-loan-amount').innerText = '₹' + a.loan_amount.toLocaleString();
@@ -176,7 +197,7 @@
 
       appendMessage('system', 'Call initialized.');
       try {
-        const resp = await (await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({borrower_id:bid,message:''}) })).json();
+        const resp = await (await apiFetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({borrower_id:bid,message:''}) })).json();
         if (resp.greeting) appendMessage('agent', resp.greeting);
       } catch {}
     }
@@ -220,7 +241,7 @@
       chatInput.value = '';
       appendMessage('user', msg);
       try {
-        const resp = await (await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({borrower_id:currentBorrower,message:msg}) })).json();
+        const resp = await (await apiFetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({borrower_id:currentBorrower,message:msg}) })).json();
         appendMessage('agent', resp.text);
         renderTrace(resp.intent, resp.action, resp.tools_used, resp.grounding);
       } catch { appendMessage('system', 'Error: agent unavailable.'); }
@@ -234,7 +255,7 @@
       chatMessages.innerHTML = '';
       appendMessage('system', `Running scenario: ${sid}...`);
       try {
-        const data = await (await fetch('/api/scenario', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scenario:sid}) })).json();
+        const data = await (await apiFetch('/api/scenario', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scenario:sid}) })).json();
         borrowerSelect.value = data.borrower_id;
         loadBorrower(data.borrower_id);
         setTimeout(() => {
