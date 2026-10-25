@@ -11,9 +11,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+import math
+import re
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
+from config import settings  # noqa: E402
 from core import clients  # noqa: E402
 from core.rag import get_rag  # noqa: E402
 
@@ -25,10 +28,86 @@ class ToolContext:
     memory: object                     # MemoryManager
     session_id: str
     trace: list = field(default_factory=list)
+    retrieved_docs: set = field(default_factory=set)  # KB docs actually retrieved this turn
 
 
 def _log(ctx: ToolContext, name: str, args: dict, result_summary: str):
     ctx.trace.append({"tool": name, "args": args, "result": result_summary})
+
+
+# ------------------------------------------------------------- argument checks
+_CATEGORY_RE = re.compile(r"^[a-z][a-z0-9_]{0,39}$")
+
+
+def _amount(value) -> str | None:
+    """A money argument must be a positive, finite number within a sane cap."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return "amount must be a number"
+    if not math.isfinite(value) or value <= 0:
+        return "amount must be a positive number"
+    if value > 10_000_000:
+        return "amount is above the supported limit"
+    return None
+
+
+def _validate(name: str, args: dict) -> str | None:
+    """Return an error message when `args` are not usable, else None.
+
+    Validation happens *before* any tool runs, so bad arguments can never
+    reach a platform service (and the LLM gets a clear message back).
+    """
+    if name == "get_payment_history":
+        status = args.get("status")
+        if status is not None and status not in settings.PAYMENT_STATUSES:
+            return f"status must be one of {list(settings.PAYMENT_STATUSES)}"
+    elif name == "search_knowledge_base":
+        query = args.get("query")
+        if not isinstance(query, str) or not query.strip():
+            return "query must be a non-empty string"
+        k = args.get("k", 3)
+        if isinstance(k, bool) or not isinstance(k, int) or not 1 <= k <= 10:
+            return "k must be an integer between 1 and 10"
+    elif name == "create_payment_link":
+        if args.get("amount") is not None:
+            err = _amount(args["amount"])
+            if err:
+                return err
+    elif name == "record_commitment":
+        date = args.get("date")
+        if not isinstance(date, str) or not date.strip() or len(date) > 40:
+            return "date must be a short, non-empty string (e.g. 2026-11-05)"
+        if args.get("amount") is not None:
+            err = _amount(args["amount"])
+            if err:
+                return err
+    elif name == "create_support_ticket":
+        if not isinstance(args.get("category"), str) or not _CATEGORY_RE.match(args["category"]):
+            return "category must be a short lowercase identifier (e.g. penalty_waiver)"
+        if not isinstance(args.get("subject"), str) or not args["subject"].strip():
+            return "subject must be a non-empty string"
+        if args.get("priority") is not None and args["priority"] not in settings.TICKET_PRIORITIES:
+            return f"priority must be one of {list(settings.TICKET_PRIORITIES)}"
+    elif name == "escalate_to_human":
+        if not isinstance(args.get("reason"), str) or not args["reason"].strip():
+            return "reason must be a non-empty string"
+        if args.get("priority") is not None and args["priority"] not in settings.TICKET_PRIORITIES:
+            return f"priority must be one of {list(settings.TICKET_PRIORITIES)}"
+    elif name == "update_crm":
+        if args.get("field") not in settings.CRM_EDITABLE_FIELDS:
+            return f"field must be one of {list(settings.CRM_EDITABLE_FIELDS)}"
+        if not isinstance(args.get("value"), str):
+            return "value must be a string"
+    elif name == "trigger_workflow":
+        if args.get("name") not in settings.WORKFLOW_NAMES:
+            return f"name must be one of {list(settings.WORKFLOW_NAMES)}"
+    return None
+
+
+# Tools with a real-world side effect — at most one call of each per turn.
+SIDE_EFFECT_TOOLS = {
+    "create_support_ticket", "create_payment_link", "record_commitment",
+    "schedule_callback", "escalate_to_human", "update_crm", "trigger_workflow",
+}
 
 
 # --------------------------------------------------------------- tool functions
@@ -77,8 +156,13 @@ def get_gateway_logs(args, ctx: ToolContext) -> dict:
 def search_knowledge_base(args, ctx: ToolContext) -> dict:
     query = args.get("query", "")
     hits = get_rag().retrieve(query, k=args.get("k", 3))
+    # record what was actually retrieved — citations are checked against this
+    for h in hits:
+        ctx.retrieved_docs.add(h.doc_id)
     out = {"query": query, "results": [{"doc_id": h.doc_id, "title": h.title, "text": h.text, "score": h.score} for h in hits]}
-    _log(ctx, "search_knowledge_base", args, f"top={hits[0].doc_id if hits else None}")
+    if not hits:
+        out["note"] = "no matching policy document found — do not claim a policy here"
+    _log(ctx, "search_knowledge_base", args, f"hits={[h.doc_id for h in hits]}")
     return out
 
 
@@ -187,10 +271,22 @@ SCHEMA_BY_NAME = {s["name"]: s for s in SCHEMAS}
 
 
 def execute(name: str, args: dict, ctx: ToolContext) -> dict:
+    """Run one registered tool with validated arguments.
+
+    Unknown tools, bad arguments and repeated side effects in the same turn
+    are refused here, before anything reaches a platform service.
+    """
     fn = REGISTRY.get(name)
     if not fn:
-        return {"error": f"unknown tool {name}"}
+        return {"error": f"unknown tool '{name}'"}
+    args = args or {}
+    err = _validate(name, args)
+    if err:
+        return {"error": err}
+    if name in SIDE_EFFECT_TOOLS and any(t["tool"] == name for t in ctx.trace):
+        return {"duplicate": True, "tool": name,
+                "note": f"{name} was already executed this turn; not repeating it"}
     try:
-        return fn(args or {}, ctx)
+        return fn(args, ctx)
     except Exception as e:  # tools must never crash the agent loop
         return {"error": str(e)}

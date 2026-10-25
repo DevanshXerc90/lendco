@@ -11,18 +11,14 @@ from pydantic import BaseModel, Field
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+from config import settings  # noqa: E402
 from platforms.common import append_runtime, read_runtime, next_id, require_platform_key  # noqa: E402
 
 app = FastAPI(title="Workflow Platform", version="1.0")
 
 # The automations this back office actually knows how to run. Anything else is
 # rejected so a stray tool call cannot fire an undefined workflow.
-WORKFLOWS = {
-    "generic",
-    "reregister_mandate",
-    "send_foreclosure_statement",
-    "initiate_penalty_reversal",
-}
+WORKFLOWS = set(settings.WORKFLOW_NAMES)
 
 
 class Callback(BaseModel):
@@ -56,7 +52,7 @@ def schedule_callback(cb: Callback):
 
 @app.post("/escalations", dependencies=[Depends(require_platform_key)])
 def escalate(e: Escalation):
-    if e.priority not in {"low", "medium", "high", "urgent"}:
+    if e.priority not in settings.TICKET_PRIORITIES:
         raise HTTPException(422, f"Unknown priority '{e.priority}'.")
     record = {"escalation_id": next_id("escalations", "ESC"), "status": "routed_to_human", **e.model_dump()}
     return append_runtime("escalations", record)

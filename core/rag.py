@@ -13,6 +13,7 @@ from __future__ import annotations
 import math
 import re
 from dataclasses import dataclass
+from functools import lru_cache
 
 import numpy as np
 
@@ -22,6 +23,28 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 from config import settings  # noqa: E402
 
 _WORD = re.compile(r"[a-z0-9]+")
+
+# A policy citation looks like `04_late_payment_policy` (the KB file stem).
+CITE_RE = re.compile(r"\d{2}_[a-z_]+")
+
+# Shown when we cannot ground a policy claim in a retrieved document: never
+# guess, say the policy still needs checking and raise a ticket.
+POLICY_UNVERIFIED_TEXT = (
+    "I want to make sure I give you the exact policy details. "
+    "Our policy will be verified by our team, and a support ticket has been raised "
+    "for your account to ensure this is reviewed accurately."
+)
+
+
+@lru_cache(maxsize=1)
+def kb_doc_ids() -> frozenset[str]:
+    """Every document id that really exists in the knowledge base."""
+    return frozenset(p.stem for p in settings.KB_DIR.glob("*.md"))
+
+
+def cited_doc_ids(text: str) -> list[str]:
+    """Document ids mentioned in a response (citation-shaped tokens)."""
+    return CITE_RE.findall(text or "")
 
 
 def _tokenize(text: str) -> list[str]:
@@ -129,8 +152,33 @@ class RAG:
         return chunks
 
     def retrieve(self, query: str, k: int = 3) -> list[Retrieved]:
+        k = max(1, min(int(k), 10))
         hits = self.index.search(query, k)
         return [Retrieved(c.doc_id, c.title, c.text, round(s, 4)) for s, c in hits]
+
+    def get_document(self, doc_id: str) -> list[Chunk] | None:
+        """Load one KB document's chunks — used to verify a citation."""
+        chunks = [c for c in self.chunks if c.doc_id == doc_id]
+        return chunks or None
+
+    def verify_citations(self, text: str, retrieved: set[str]) -> tuple[bool, set[str]]:
+        """Check every doc id cited in `text` against real, retrieved documents.
+
+        Ids already retrieved this turn are accepted; ids not yet retrieved are
+        loaded from the index (and recorded in `retrieved`), so a citation is
+        never taken on trust. A citation naming a document that does not exist
+        makes the whole answer ungrounded — that is a fabricated source.
+        """
+        cited = cited_doc_ids(text)
+        if not cited:
+            return False, retrieved
+        for doc_id in cited:
+            if doc_id in retrieved:
+                continue
+            if self.get_document(doc_id) is None:
+                return False, retrieved  # invented document id
+            retrieved.add(doc_id)        # now genuinely retrieved
+        return True, retrieved
 
     def context_block(self, query: str, k: int = 3) -> str:
         """A citation-ready block to inject into the LLM prompt."""

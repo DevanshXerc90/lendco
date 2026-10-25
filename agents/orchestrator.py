@@ -165,7 +165,13 @@ class Orchestrator:
         # compose the grounded answer
         tc = self._tool_ctx()
         if self.llm.available:
-            out = self.voice_agent.respond_llm(s["context"], s["recall"], diagnosis, s["history"], tc)
+            try:
+                out = self.voice_agent.respond_llm(s["context"], s["recall"], diagnosis, s["history"], tc)
+            except Exception as e:
+                # A model or network failure must not take the whole call down:
+                # log the reason (no borrower data) and answer deterministically.
+                print(f"[orchestrator] LLM path failed ({type(e).__name__}: {e}); falling back to the rule-based planner")
+                out = self.voice_agent.respond_rule_based(s["context"], s["recall"], diagnosis, s["collected"], tc)
         else:
             out = self.voice_agent.respond_rule_based(s["context"], s["recall"], diagnosis, s["collected"], tc)
 
