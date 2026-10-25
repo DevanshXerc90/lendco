@@ -181,18 +181,20 @@ class Orchestrator:
             if out["action"] in ("ticket_created",) and diagnosis.intent in ("settlement_request",):
                 s["escalated"] = True
         s["history"].append({"role": "agent", "text": out["text"]})
-        result = self._turn_result(out["text"], diagnosis.intent, out.get("action"), diagnosis=diagnosis)
+        result = self._turn_result(out["text"], diagnosis.intent, out.get("action"),
+                                   diagnosis=diagnosis, grounding=out.get("grounding", []))
         # an answer completed this intent — reset so the next utterance is re-classified
         # afresh (intent only stays sticky while a slot-fill follow-up is pending).
         s["intent"] = None
         s["collected"] = {}
         return result
 
-    def _turn_result(self, text, intent, action, asking=None, diagnosis=None):
+    def _turn_result(self, text, intent, action, asking=None, diagnosis=None, grounding=None):
         return {
             "text": text, "intent": intent, "action": action, "asking": asking,
             "sentiment": self.session["sentiment"],
             "tool_trace": self.session["tool_trace"][-6:],
+            "grounding": grounding or [],
             "diagnosis": diagnosis.to_dict() if diagnosis else None,
         }
 
