@@ -82,3 +82,18 @@ DEMO_API_KEY = os.getenv("DEMO_API_KEY", "").strip()
 # Shared key between the agent and the internal platform services (sent as
 # X-Platform-Key). Empty = the services rely on loopback binding alone.
 PLATFORM_API_KEY = os.getenv("PLATFORM_API_KEY", "").strip()
+
+# --- Tool / platform action allowlists (enforced by core.tools *and* the
+# --- platform services, so a stray LLM tool call cannot do the unexpected) ---
+# CRM fields an agent may edit. Identity and loan facts are read-only.
+CRM_EDITABLE_FIELDS = ("preferred_language", "email", "contact_note")
+
+# Automations the workflow platform knows how to run.
+WORKFLOW_NAMES = ("generic", "reregister_mandate", "send_foreclosure_statement",
+                  "initiate_penalty_reversal")
+
+# Ticket priorities understood by the support platform.
+TICKET_PRIORITIES = ("low", "medium", "high", "urgent")
+
+# Payment-history status filter values.
+PAYMENT_STATUSES = ("success", "failed", "partial", "missed", "auto_debit_failed")

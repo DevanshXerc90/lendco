@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+from config import settings  # noqa: E402
 from platforms.common import load, append_runtime, read_runtime, require_platform_key  # noqa: E402
 
 app = FastAPI(title="CRM Platform", version="1.0")
@@ -20,7 +21,7 @@ _BY_PHONE = {b["phone"]: b for b in _BORROWERS.values()}
 # Only these borrower fields may be updated through the API. Identity and loan
 # facts (phone, loan_amount, dpd_days, KYC ...) are read-only and must never be
 # editable from a chat tool call.
-UPDATABLE_FIELDS = {"preferred_language", "email", "contact_note"}
+UPDATABLE_FIELDS = set(settings.CRM_EDITABLE_FIELDS)
 
 
 class CRMUpdate(BaseModel):
