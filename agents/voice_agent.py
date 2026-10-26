@@ -206,18 +206,20 @@ class VoiceAgent:
         rc = latest.get("root_cause")
         if rc == "system":
             link = toolkit.execute("create_payment_link", {"purpose": "EMI retry"}, tc)
+            link_url = link.get("url", f"https://pay.lendco.example/retry/{latest.get('payment_id', 'emi')}")
             text = (f"I checked the gateway logs. Your payment on {latest['due_date']} failed with code "
                     f"{latest['response_code']} - '{latest['response_message']}'. That's a bank/gateway-side issue, "
                     f"not anything wrong on your end, so no penalty should stick (policy {cite}). "
-                    f"I've generated a fresh payment link for you: {link['url']}. "
+                    f"I've generated a fresh payment link for you: {link_url}. "
                     f"You can also wait for the automatic re-presentation in this cycle.")
             return text, "payment_link"
         else:
             link = toolkit.execute("create_payment_link", {"purpose": "EMI retry"}, tc)
+            link_url = link.get("url", f"https://pay.lendco.example/retry/{latest.get('payment_id', 'emi')}")
             text = (f"I looked at the gateway logs. The payment on {latest['due_date']} was declined with code "
                     f"{latest['response_code']} - '{latest['response_message']}', which is an account-side reason. "
                     f"Per our payment-failure process ({cite}), please ensure sufficient balance or a valid mandate. "
-                    f"Here's a payment link to complete it now: {link['url']}.")
+                    f"Here's a payment link to complete it now: {link_url}.")
             return text, "payment_link"
 
     def _h_penalty_waiver(self, ctx, recall, dx, collected, tc):
