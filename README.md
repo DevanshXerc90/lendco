@@ -9,7 +9,7 @@ LendCo is an offline-first borrower-support voice-agent prototype: Python module
 These values are read from [`eval/results.json`](eval/results.json), produced by `python -m eval.evaluator` (deterministic planner). The summary test recomputes this table from that artifact.
 
 | Metric | Result | Reproduce |
-|---|---:|---:|---|
+|---|---|---|
 | Intent accuracy | 100.0% (30/30) | `python -m eval.evaluator` |
 | Policy grounding rate | 100.0% (64/64) | `python -m eval.evaluator` |
 | Resolved without escalation | 87.5% (56/64) | `python -m eval.evaluator` |
