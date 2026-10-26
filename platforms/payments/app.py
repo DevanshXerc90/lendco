@@ -7,13 +7,13 @@ from __future__ import annotations
 
 from collections import defaultdict
 
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import Depends, FastAPI, HTTPException
+from pydantic import BaseModel, Field
 
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
-from platforms.common import load, append_runtime, next_id  # noqa: E402
+from platforms.common import load, append_runtime, next_id, require_platform_key  # noqa: E402
 
 app = FastAPI(title="Payments Platform", version="1.0")
 _PAYMENTS = load("payments")
@@ -24,9 +24,10 @@ _BY_ID = {p["payment_id"]: p for p in _PAYMENTS}
 
 
 class PaymentLinkRequest(BaseModel):
-    borrower_id: str
-    amount: float
-    purpose: str = "EMI payment"
+    borrower_id: str = Field(pattern=r"^BRW\d{5}$")
+    # A payment link must be a positive, finite rupee amount within a sane cap.
+    amount: float = Field(gt=0, le=1_00_00_000)
+    purpose: str = Field(default="EMI payment", max_length=120)
 
 
 @app.get("/health")
@@ -73,7 +74,7 @@ def gateway_logs(borrower_id: str):
     ]
 
 
-@app.post("/payment-links")
+@app.post("/payment-links", dependencies=[Depends(require_platform_key)])
 def create_payment_link(req: PaymentLinkRequest):
     link_id = next_id("payment_links", "PL")
     record = {

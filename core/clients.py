@@ -1,12 +1,20 @@
 """Typed clients for the five mock platforms.
 
 Each client wraps HTTP calls to one independent service. If a service is
-unreachable, the client falls back to reading the generated data directly so the
-agent degrades gracefully (a production-readiness concern) instead of crashing.
+unreachable or answers badly, the client degrades instead of crashing:
+
+  * reads   -> serve the local generated data and log a warning, so stale demo
+               data is never mistaken for a live answer silently;
+  * writes  -> store the record in data/runtime/ with `"fallback": True`, so the
+               side effect still exists and is visibly marked.
+
+Every request carries an 8s timeout. Warnings name the service and the error
+type only — no credentials and no borrower data.
 """
 from __future__ import annotations
 
 import json
+import threading
 from functools import lru_cache
 
 import httpx
@@ -15,8 +23,44 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 from config import settings  # noqa: E402
+from core.dates import iso_now  # noqa: E402
 
 _TIMEOUT = httpx.Timeout(8.0)
+RUNTIME_DIR = settings.ROOT / "data" / "runtime"
+_lock = threading.Lock()
+_warned: set[str] = set()
+
+
+def _warn(key: str, message: str) -> None:
+    """Log a fallback once per process (keeps the logs readable)."""
+    if key not in _warned:
+        _warned.add(key)
+        print(message)
+
+
+def _json(r, service: str):
+    """Parse a response, turning a malformed body into a clear error."""
+    try:
+        return r.json()
+    except Exception:
+        raise RuntimeError(f"{service} returned a malformed response (HTTP {r.status_code})") from None
+
+
+def _local_append(store: str, record: dict) -> dict:
+    """Persist a side effect locally when its platform service is down."""
+    RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
+    path = RUNTIME_DIR / f"{store}.json"
+    with _lock:
+        items = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+        items.append(record)
+        path.write_text(json.dumps(items, indent=2), encoding="utf-8")
+    return record
+
+
+def _local_id(store: str, prefix: str) -> str:
+    path = RUNTIME_DIR / f"{store}.json"
+    items = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+    return f"{prefix}{len(items) + 1:05d}"
 
 
 @lru_cache(maxsize=1)
@@ -25,16 +69,22 @@ def _local(name: str) -> list[dict]:
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
 
 
+def _headers() -> dict:
+    """Shared platform key, only when one is configured (see settings)."""
+    return {"X-Platform-Key": settings.PLATFORM_API_KEY} if settings.PLATFORM_API_KEY else {}
+
+
 def _get(base: str, path: str, **params):
-    r = httpx.get(f"{base}{path}", params={k: v for k, v in params.items() if v is not None}, timeout=_TIMEOUT)
+    r = httpx.get(f"{base}{path}", params={k: v for k, v in params.items() if v is not None},
+                  headers=_headers(), timeout=_TIMEOUT)
     r.raise_for_status()
-    return r.json()
+    return _json(r, base)
 
 
 def _post(base: str, path: str, payload: dict):
-    r = httpx.post(f"{base}{path}", json=payload, timeout=_TIMEOUT)
+    r = httpx.post(f"{base}{path}", json=payload, headers=_headers(), timeout=_TIMEOUT)
     r.raise_for_status()
-    return r.json()
+    return _json(r, base)
 
 
 # --------------------------------------------------------------------------- CRM
@@ -69,8 +119,13 @@ class CRMClient:
                 return merged
         try:
             return _get(self._mock_base, f"/borrowers/{borrower_id}")
-        except Exception:
-            return next((b for b in _local("borrowers") if b["borrower_id"] == borrower_id), None)
+        except Exception as e:
+            _warn("crm.get_borrower", f"[CRM] mock service unreachable ({type(e).__name__}); using local generated data")
+            b = next((b for b in _local("borrowers") if b["borrower_id"] == borrower_id), None)
+            if b:
+                b = dict(b)
+                b["_source"] = "local_generated_data"  # not a live CRM record
+            return b
 
     def find_by_phone(self, phone: str) -> dict | None:
         if self._hubspot:
@@ -82,9 +137,14 @@ class CRMClient:
                 return merged
         try:
             return _get(self._mock_base, "/borrowers", phone=phone)
-        except Exception:
+        except Exception as e:
+            _warn("crm.find_by_phone", f"[CRM] mock service unreachable ({type(e).__name__}); using local generated data")
             p = phone if phone.startswith("+91") else f"+91{phone}"
-            return next((b for b in _local("borrowers") if b["phone"] == p), None)
+            b = next((b for b in _local("borrowers") if b["phone"] == p), None)
+            if b:
+                b = dict(b)
+                b["_source"] = "local_generated_data"
+            return b
 
     def get_kyc(self, borrower_id: str) -> dict | None:
         if self._hubspot:
@@ -106,9 +166,9 @@ class CRMClient:
 
 
 def _post_patch(base: str, path: str, payload: dict):
-    r = httpx.patch(f"{base}{path}", json=payload, timeout=_TIMEOUT)
+    r = httpx.patch(f"{base}{path}", json=payload, headers=_headers(), timeout=_TIMEOUT)
     r.raise_for_status()
-    return r.json()
+    return _json(r, base)
 
 
 # ----------------------------------------------------------------------- Payments
@@ -145,14 +205,16 @@ class PaymentsClient:
     def history(self, borrower_id: str, status: str | None = None) -> list[dict]:
         try:
             return _get(self._mock_base, "/payments", borrower_id=borrower_id, status=status)
-        except Exception:
+        except Exception as e:
+            _warn("payments.history", f"[Payments] mock service unreachable ({type(e).__name__}); using local generated data")
             items = [p for p in _local("payments") if p["borrower_id"] == borrower_id]
             return [p for p in items if not status or p["status"] == status]
 
     def gateway_logs(self, borrower_id: str) -> list[dict]:
         try:
             return _get(self._mock_base, "/gateway-logs", borrower_id=borrower_id)
-        except Exception:
+        except Exception as e:
+            _warn("payments.gateway_logs", f"[Payments] mock service unreachable ({type(e).__name__}); using local generated data")
             # Local fallback: normalize raw payment records to match the
             # mock service's output format (response_code vs gateway_response_code).
             return [
@@ -175,17 +237,20 @@ class PaymentsClient:
     def create_payment_link(self, borrower_id: str, amount: float, purpose: str = "EMI payment") -> dict:
         if self._stripe:
             result = self._stripe.create_payment_link(borrower_id, amount, purpose)
-            if result.get("_source") == "stripe" and result.get("url"):
+            if result.get("_source") == "stripe":
                 return result
         if self._razorpay:
             result = self._razorpay.create_payment_link(borrower_id, amount, purpose)
-            if result.get("url"):
+            if result.get("_source") == "razorpay":
                 return result
         try:
             return _post(self._mock_base, "/payment-links", {"borrower_id": borrower_id, "amount": amount, "purpose": purpose})
-        except Exception:
-            link_id = f"PL_LOCAL_{borrower_id}"
-            return {
+        except Exception as e:
+            # Keep the side effect, but mark it so nobody mistakes it for a
+            # link issued by the live payments service.
+            _warn("payments.create_payment_link", f"[Payments] service unreachable ({type(e).__name__}); creating payment link locally")
+            link_id = _local_id("payment_links", "PL")
+            return _local_append("payment_links", {
                 "link_id": link_id,
                 "borrower_id": borrower_id,
                 "amount": amount,
@@ -193,7 +258,9 @@ class PaymentsClient:
                 "url": f"https://pay.lendco.example/l/{link_id.lower()}",
                 "status": "active",
                 "valid_for_hours": 24,
-            }
+                "fallback": True,
+                "created_at": iso_now(),
+            })
 
 
 # ------------------------------------------------------------------------ Support
@@ -203,31 +270,33 @@ class SupportClient:
     def tickets(self, borrower_id: str | None = None, status: str | None = None) -> list[dict]:
         try:
             return _get(self.base, "/tickets", borrower_id=borrower_id, status=status)
-        except Exception:
+        except Exception as e:
+            _warn("support.tickets", f"[Support] mock service unreachable ({type(e).__name__}); using local generated data")
             items = [t for t in _local("tickets") if not borrower_id or t["borrower_id"] == borrower_id]
             return [t for t in items if not status or t["status"] == status]
 
     def create_ticket(self, borrower_id: str, category: str, subject: str, description: str,
                       loan_id: str | None = None, priority: str = "medium") -> dict:
+        payload = {
+            "borrower_id": borrower_id, "loan_id": loan_id, "category": category,
+            "subject": subject, "description": description, "priority": priority,
+        }
         try:
-            return _post(self.base, "/tickets", {
-                "borrower_id": borrower_id, "loan_id": loan_id, "category": category,
-                "subject": subject, "description": description, "priority": priority,
-            })
-        except Exception:
-            from datetime import datetime, timezone
-            ticket_id = f"TKT_LOCAL_{borrower_id}"
-            return {
-                "ticket_id": ticket_id,
-                "borrower_id": borrower_id,
-                "loan_id": loan_id,
-                "category": category,
-                "subject": subject,
-                "description": description,
-                "priority": priority,
+            return _post(self.base, "/tickets", payload)
+        except Exception as e:
+            _warn("support.create_ticket", f"[Support] service unreachable ({type(e).__name__}); storing ticket locally")
+            record = {
+                "ticket_id": _local_id("tickets", "TKTN"),
+                **payload,
                 "status": "open",
-                "created_at": datetime.now(timezone.utc).isoformat(),
+                "channel": "voice",
+                "created_at": iso_now(),
+                "updated_at": iso_now(),
+                "resolution": None,
+                "created_by": "voice_agent",
+                "fallback": True,  # written locally, not by the support platform
             }
+            return _local_append("tickets", record)
 
 
 # ---------------------------------------------------------------------- Knowledge
@@ -253,22 +322,37 @@ class WorkflowClient:
     base = settings.PLATFORM_URLS["workflow"]
 
     def schedule_callback(self, borrower_id: str, reason: str, preferred_window: str = "tomorrow 10:00-12:00") -> dict:
+        payload = {"borrower_id": borrower_id, "reason": reason, "preferred_window": preferred_window}
         try:
-            return _post(self.base, "/callbacks", {"borrower_id": borrower_id, "reason": reason, "preferred_window": preferred_window})
-        except Exception:
-            return {"callback_id": f"CB_LOCAL_{borrower_id}", "status": "scheduled", "borrower_id": borrower_id, "reason": reason, "preferred_window": preferred_window}
+            return _post(self.base, "/callbacks", payload)
+        except Exception as e:
+            _warn("workflow.schedule_callback", f"[Workflow] service unreachable ({type(e).__name__}); storing callback locally")
+            return _local_append("callbacks", {
+                "callback_id": _local_id("callbacks", "CB"), "status": "scheduled",
+                **payload, "fallback": True,
+            })
 
     def escalate(self, borrower_id: str, reason: str, priority: str = "high", context: str | None = None) -> dict:
+        payload = {"borrower_id": borrower_id, "reason": reason, "priority": priority, "context": context}
         try:
-            return _post(self.base, "/escalations", {"borrower_id": borrower_id, "reason": reason, "priority": priority, "context": context})
-        except Exception:
-            return {"escalation_id": f"ESC_LOCAL_{borrower_id}", "status": "escalated", "borrower_id": borrower_id, "reason": reason, "priority": priority}
+            return _post(self.base, "/escalations", payload)
+        except Exception as e:
+            _warn("workflow.escalate", f"[Workflow] service unreachable ({type(e).__name__}); storing escalation locally")
+            return _local_append("escalations", {
+                "escalation_id": _local_id("escalations", "ESC"), "status": "routed_to_human",
+                **payload, "fallback": True,
+            })
 
     def trigger(self, name: str, borrower_id: str, params: dict | None = None) -> dict:
+        payload = {"borrower_id": borrower_id, "params": params or {}}
         try:
-            return _post(self.base, f"/workflows/{name}/trigger", {"borrower_id": borrower_id, "params": params or {}})
-        except Exception:
-            return {"run_id": f"RUN_LOCAL_{name}", "status": "triggered", "workflow": name, "borrower_id": borrower_id}
+            return _post(self.base, f"/workflows/{name}/trigger", payload)
+        except Exception as e:
+            _warn("workflow.trigger", f"[Workflow] service unreachable ({type(e).__name__}); storing workflow run locally")
+            return _local_append("workflow_runs", {
+                "run_id": _local_id("workflow_runs", "WF"), "workflow": name,
+                **payload, "status": "completed", "fallback": True,
+            })
 
 
 crm = CRMClient()

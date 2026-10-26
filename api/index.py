@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import tempfile
 import time
@@ -19,11 +20,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from fastapi import FastAPI, HTTPException, Query, Request  # noqa: E402
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 from fastapi.responses import JSONResponse  # noqa: E402
 from pydantic import BaseModel, Field  # noqa: E402
 
+from api import auth  # noqa: E402
 from config import settings  # noqa: E402
 
 # ---------- app setup -------------------------------------------------------
@@ -41,9 +43,9 @@ _rate_buckets: dict[str, deque[float]] = defaultdict(deque)
 app = FastAPI(title="LendCo Voice Agent API", docs_url="/api/docs")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[x.strip() for x in os.getenv(
+    allow_origins=[origin.strip() for origin in os.getenv(
         "CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"
-    ).split(",") if x.strip()],
+    ).split(",") if origin.strip()],
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type", "X-API-Key", "Authorization"],
 )
@@ -57,8 +59,9 @@ async def request_limits(request: Request, call_next):
     if protected and (DEMO_API_KEY or API_SECRET or os.getenv("VERCEL") or ENVIRONMENT == "production"):
         supplied = request.headers.get("x-api-key", "")
         valid_keys = {key for key in (DEMO_API_KEY, API_SECRET) if key}
-        if supplied not in valid_keys:
-            return JSONResponse({"detail": "X-API-Key is required"}, status_code=401)
+        if supplied not in valid_keys and not request.headers.get("authorization", "").startswith("Bearer "):
+            return JSONResponse({"detail": "X-API-Key or bearer token is required"}, status_code=401)
+
     if request.url.path in {"/api/chat", "/api/scenario"}:
         content_length = request.headers.get("content-length")
         if content_length and int(content_length) > MAX_BODY_BYTES:
@@ -72,16 +75,6 @@ async def request_limits(request: Request, call_next):
             return JSONResponse({"detail": "rate limit exceeded"}, status_code=429)
         bucket.append(now)
     return await call_next(request)
-
-
-def _require_demo_key(request: Request) -> None:
-    """Local development is open; deployed or configured demo mode is keyed."""
-    if not DEMO_API_KEY and not API_SECRET and not (os.getenv("VERCEL") or ENVIRONMENT == "production"):
-        return
-    supplied = request.headers.get("x-api-key", "")
-    valid_keys = {key for key in (DEMO_API_KEY, API_SECRET) if key}
-    if supplied not in valid_keys:
-        raise HTTPException(401, "X-API-Key is required")
 
 
 # ---------- data helpers ----------------------------------------------------
@@ -98,6 +91,64 @@ def _load(name: str) -> list[dict]:
     return json.loads(p.read_text(encoding="utf-8")) if p.exists() else []
 
 
+# ---------------------------------------------------------------- validation --
+BORROWER_ID_RE = re.compile(r"^BRW\d{5}$")
+
+
+def _check_borrower_id(borrower_id: str) -> str:
+    """Reject malformed ids early instead of scanning the data with them."""
+    if not BORROWER_ID_RE.match(borrower_id):
+        raise HTTPException(400, "Invalid borrower id: expected e.g. BRW00001.")
+    return borrower_id
+
+
+def _borrower_or_404(borrower_id: str) -> dict:
+    b = next((x for x in _load("borrowers") if x["borrower_id"] == borrower_id), None)
+    if not b:
+        raise HTTPException(404, f"Borrower {borrower_id} not found")
+    return b
+
+
+def _mask_phone(phone: str) -> str:
+    """Show the country code + first digits and the last three only."""
+    if len(phone) <= 8:
+        return "*" * len(phone)
+    return phone[:5] + "*" * (len(phone) - 8) + phone[-3:]
+
+
+def _mask_pan(pan: str) -> str:
+    """PAN policy (see KB): full PAN is never exposed — first 5 and last 1 only."""
+    if len(pan) < 10:
+        return "****"
+    return pan[:5] + "****" + pan[-1]
+
+
+def _redact_borrower(b: dict) -> dict:
+    """Copy of a borrower record with KYC identifiers masked."""
+    out = dict(b)
+    kyc = dict(out.get("kyc") or {})
+    if kyc.get("pan"):
+        kyc["pan"] = _mask_pan(kyc["pan"])
+    out["kyc"] = kyc
+    return out
+
+
+def _tools(result: dict) -> list[str]:
+    """Tool names executed during a turn (orchestrator returns `tool_trace`)."""
+    return [t.get("tool") for t in result.get("tool_trace", [])]
+
+
+def _greeting(start_info: dict) -> str:
+    """The session opener (orchestrator.start returns it as `text`)."""
+    return start_info.get("greeting") or start_info.get("text", "")
+
+
+# Fail fast on invalid configuration, then print the running modes (never keys).
+settings.validate()
+for _line in settings.startup_summary():
+    print(_line)
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -108,14 +159,41 @@ def health():
     return {"status": "ok", "platforms": 5, "scenarios": 6, "mode": "serverless"}
 
 
+# ── Auth ──────────────────────────────────────────────────────────────────
+class LoginRequest(BaseModel):
+    borrower_id: str = Field(min_length=1, max_length=32)
+    phone: str = Field(min_length=4, max_length=32)
+
+
+@app.post("/api/auth/login")
+def login(req: LoginRequest):
+    """Sign in as a borrower with their registered phone number.
+
+    Returns a bearer token scoped to that borrower; every borrower-scoped
+    endpoint then rejects requests for anyone else's records.
+    """
+    _check_borrower_id(req.borrower_id)
+    b = _borrower_or_404(req.borrower_id)
+
+    supplied = re.sub(r"[\s\-]", "", req.phone)
+    known = b["phone"]
+    if supplied not in (known, known.removeprefix("+91")) and f"+91{supplied}" != known:
+        raise HTTPException(401, "Registered phone number does not match our records.")
+
+    token, expires = auth.issue_token(req.borrower_id)
+    return {"access_token": token, "token_type": "Bearer",
+            "expires_at": expires, "borrower_id": req.borrower_id}
+
+
 # ── CRM (borrowers) ────────────────────────────────────────────────────────
 @app.get("/api/borrowers")
-def list_borrowers():
+def list_borrowers(x_api_key: str | None = Header(None)):
+    auth.require_operator(x_api_key)
     return [
         {
             "borrower_id": b["borrower_id"],
             "name": b["name"],
-            "phone": b["phone"],
+            "phone": _mask_phone(b["phone"]),  # never list full phone numbers
             "loan_type": b.get("loan_type", "personal"),
             "loan_amount": b.get("loan_amount"),
             "emi_amount": b.get("emi_amount"),
@@ -127,21 +205,27 @@ def list_borrowers():
 
 
 @app.get("/api/borrowers/{borrower_id}")
-def get_borrower(borrower_id: str):
-    b = next((x for x in _load("borrowers") if x["borrower_id"] == borrower_id), None)
-    if not b:
-        raise HTTPException(404, f"Borrower {borrower_id} not found")
-    return b
+def get_borrower(borrower_id: str, authorization: str | None = Header(None),
+                 x_api_key: str | None = Header(None)):
+    _check_borrower_id(borrower_id)
+    auth.check_borrower_access(borrower_id, authorization, x_api_key)
+    return _redact_borrower(_borrower_or_404(borrower_id))
 
 
 # ── Payments ────────────────────────────────────────────────────────────────
 @app.get("/api/payments")
-def get_payments(borrower_id: str = Query(...)):
+def get_payments(borrower_id: str = Query(...), authorization: str | None = Header(None),
+                 x_api_key: str | None = Header(None)):
+    _check_borrower_id(borrower_id)
+    auth.check_borrower_access(borrower_id, authorization, x_api_key)
     return [p for p in _load("payments") if p["borrower_id"] == borrower_id]
 
 
 @app.get("/api/gateway-logs")
-def get_gateway_logs(borrower_id: str = Query(...)):
+def get_gateway_logs(borrower_id: str = Query(...), authorization: str | None = Header(None),
+                      x_api_key: str | None = Header(None)):
+    _check_borrower_id(borrower_id)
+    auth.check_borrower_access(borrower_id, authorization, x_api_key)
     return [
         {
             "payment_id": p["payment_id"],
@@ -161,10 +245,14 @@ def get_gateway_logs(borrower_id: str = Query(...)):
 
 # ── Support (tickets) ──────────────────────────────────────────────────────
 @app.get("/api/tickets")
-def get_tickets(borrower_id: str = Query(None)):
+def get_tickets(borrower_id: str = Query(None), authorization: str | None = Header(None),
+                x_api_key: str | None = Header(None)):
     tickets = _load("tickets")
     if borrower_id:
+        _check_borrower_id(borrower_id)
+        auth.check_borrower_access(borrower_id, authorization, x_api_key)
         return [t for t in tickets if t["borrower_id"] == borrower_id]
+    auth.require_operator(x_api_key)  # unfiltered list spans every borrower
     return tickets[:50]  # cap for list view
 
 
@@ -181,6 +269,8 @@ def list_documents():
 @app.get("/api/documents/{doc_id}")
 def get_document(doc_id: str):
     _ensure_data()
+    if not re.fullmatch(r"[A-Za-z0-9_\-]+", doc_id):
+        raise HTTPException(400, "Invalid document id.")  # never let '..' escape the KB folder
     p = settings.KB_DIR / f"{doc_id}.md"
     if not p.exists():
         raise HTTPException(404, f"Document {doc_id} not found")
@@ -189,32 +279,41 @@ def get_document(doc_id: str):
 
 # ── Context Engine analytics ───────────────────────────────────────────────
 @app.get("/api/analytics/{borrower_id}")
-def get_analytics(borrower_id: str):
+def get_analytics(borrower_id: str, authorization: str | None = Header(None),
+                  x_api_key: str | None = Header(None)):
+    _check_borrower_id(borrower_id)
+    auth.check_borrower_access(borrower_id, authorization, x_api_key)
     from core.context_engine import ContextEngine
     ctx = ContextEngine().build(borrower_id=borrower_id)
     if not ctx.found:
         raise HTTPException(404, f"Borrower {borrower_id} not found")
-    return {
-        "borrower_id": borrower_id,
-        "analytics": ctx.analytics,
-        "borrower": ctx.borrower,
-        "operational": ctx.operational,
+    return {            "borrower_id": borrower_id,
+            "analytics": ctx.analytics,
+            "borrower": ctx.profile,       # UnifiedContext has profile, not borrower
+            "operational": {
+                "delinquency_status": ctx.delinquency_status,
+                "dpd_days": ctx.dpd_days,
+                "open_tickets": ctx.open_tickets,
+                "recent_failures": ctx.recent_failures,
+            },
     }
 
 
 # ── Agent chat ──────────────────────────────────────────────────────────────
 class ChatRequest(BaseModel):
-    borrower_id: str
-    message: str = Field(..., min_length=1, max_length=4000)
+    borrower_id: str = Field(pattern=r"^BRW\d{5}$")
+    message: str = Field(default="", max_length=2000)  # empty = open the call / greeting
 
 
 @app.post("/api/chat")
-def chat(req: ChatRequest, request: Request):
-    _require_demo_key(request)
+def chat(req: ChatRequest, authorization: str | None = Header(None),
+         x_api_key: str | None = Header(None)):
     from agents.orchestrator import Orchestrator
     from core.llm import NullLLM
     from core.memory import MemoryManager
 
+    auth.check_borrower_access(req.borrower_id, authorization, x_api_key)
+    _borrower_or_404(req.borrower_id)
     mem = MemoryManager(db_path=tempfile.mktemp(suffix=".db"))
     orc = Orchestrator(memory=mem, llm=NullLLM())
     start_info = orc.start(borrower_id=req.borrower_id)
@@ -224,21 +323,20 @@ def chat(req: ChatRequest, request: Request):
         "text": result.get("text", ""),
         "intent": result.get("intent", ""),
         "action": result.get("action", ""),
-        "tools_used": result.get("tools_used", []),
+        "tools_used": _tools(result),
         "grounding": result.get("grounding", []),
-        "greeting": start_info.get("greeting", ""),
+        "greeting": _greeting(start_info),
         "summary": summary,
     }
 
 
 # ── Scenario runner ─────────────────────────────────────────────────────────
 class ScenarioRequest(BaseModel):
-    scenario: str = Field(..., min_length=1, max_length=64)
+    scenario: str = Field(min_length=1, max_length=40)
 
 
-@app.post("/api/scenario")
-def run_scenario(req: ScenarioRequest, request: Request):
-    _require_demo_key(request)
+@app.post("/api/scenario", dependencies=[Depends(auth.require_operator)])
+def run_scenario(req: ScenarioRequest):
     from agents.orchestrator import Orchestrator
     from app.scenarios import PTP_MEMORY, SCRIPTS, pick_borrower
     from core.llm import NullLLM
@@ -255,7 +353,8 @@ def run_scenario(req: ScenarioRequest, request: Request):
         for msg in PTP_MEMORY["call1"]:
             r = o1.handle(msg)
             call1.append({"user": msg, "agent": r.get("text", ""), "intent": r.get("intent", ""),
-                          "tools": r.get("tools_used", []), "action": r.get("action", "")})
+                          "tools": _tools(r), "action": r.get("action", ""),
+                          "grounding": r.get("grounding", [])})
         s1 = o1.end()
 
         # Call 2 — same memory, new orchestrator
@@ -265,15 +364,16 @@ def run_scenario(req: ScenarioRequest, request: Request):
         for msg in PTP_MEMORY["call2"]:
             r = o2.handle(msg)
             call2.append({"user": msg, "agent": r.get("text", ""), "intent": r.get("intent", ""),
-                          "tools": r.get("tools_used", []), "action": r.get("action", "")})
+                          "tools": _tools(r), "action": r.get("action", ""),
+                          "grounding": r.get("grounding", [])})
         s2 = o2.end()
 
         return {
             "scenario": "ptp_memory",
             "borrower_id": bid,
-            "call1": {"greeting": s1_start.get("greeting", ""), "turns": call1, "summary": s1},
+            "call1": {"greeting": _greeting(s1_start), "turns": call1, "summary": s1},
             "call2": {
-                "greeting": s2_start.get("greeting", ""),
+                "greeting": _greeting(s2_start),
                 "memory_aware": s2_start.get("memory_aware", False),
                 "turns": call2,
                 "summary": s2,
@@ -292,12 +392,13 @@ def run_scenario(req: ScenarioRequest, request: Request):
     for msg in scripts[req.scenario]:
         r = orc.handle(msg)
         turns.append({"user": msg, "agent": r.get("text", ""), "intent": r.get("intent", ""),
-                      "tools": r.get("tools_used", []), "action": r.get("action", "")})
+                      "tools": _tools(r), "action": r.get("action", ""),
+                      "grounding": r.get("grounding", [])})
     summary = orc.end()
     return {
         "scenario": req.scenario,
         "borrower_id": bid,
-        "greeting": start_info.get("greeting", ""),
+        "greeting": _greeting(start_info),
         "turns": turns,
         "summary": summary,
     }

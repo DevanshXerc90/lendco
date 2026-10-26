@@ -15,9 +15,12 @@ rest of the system (memory, dashboard) can observe side effects.
 """
 from __future__ import annotations
 
+import hmac
 import json
 import threading
 from pathlib import Path
+
+from fastapi import Header, HTTPException
 
 import sys
 sys.path.append(str(Path(__file__).resolve().parent.parent))
@@ -34,6 +37,20 @@ def load(name: str) -> list[dict]:
     if not path.exists():
         raise FileNotFoundError(f"{path} missing — run `python -m data.generate` first.")
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def require_platform_key(x_platform_key: str | None = Header(None)) -> None:
+    """Guard for mutating endpoints on these internal services.
+
+    The platforms are meant to be reached only by the agent/API (loopback by
+    default). When PLATFORM_API_KEY is configured, writes must also carry it in
+    X-Platform-Key. When it is unset the key check is a no-op and the services
+    rely on loopback binding alone.
+    """
+    if not settings.PLATFORM_API_KEY:
+        return
+    if not x_platform_key or not hmac.compare_digest(x_platform_key, settings.PLATFORM_API_KEY):
+        raise HTTPException(403, "Missing or invalid X-Platform-Key.")
 
 
 def runtime_path(name: str) -> Path:
