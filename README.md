@@ -8,19 +8,23 @@ LendCo is an offline-first borrower-support voice-agent prototype: Python module
 
 These values are read from [`eval/results.json`](eval/results.json), produced by `python -m eval.evaluator` (deterministic planner). The summary test recomputes this table from that artifact.
 
-| Metric | Deterministic | Anthropic (`--llm`) | Reproduce |
+| Metric | Result | Reproduce |
 |---|---:|---:|---|
-| Intent accuracy | 100.0% (30/30) | not run: `ANTHROPIC_API_KEY` unavailable | `python -m eval.evaluator` / `python -m eval.evaluator --llm` |
-| Policy grounding rate | 100.0% (64/64) | not run: `ANTHROPIC_API_KEY` unavailable | same |
-| Resolved without escalation | 87.5% (56/64) | not run: `ANTHROPIC_API_KEY` unavailable | same |
-| Escalated by design | 12.5% (8/64) | not run: `ANTHROPIC_API_KEY` unavailable | same |
-| Redundant question rate | 0.0% (0) | not run: `ANTHROPIC_API_KEY` unavailable | same |
-| Root-cause accuracy | 100.0% (40/40) | not run: `ANTHROPIC_API_KEY` unavailable | same |
-| Average turns / call | 1.25 (weighted 80 turns / 64 calls) | not run: `ANTHROPIC_API_KEY` unavailable | same |
-| Memory turns | 3.0 -> 1.0 (20 borrowers) | not run: `ANTHROPIC_API_KEY` unavailable | same |
-| Memory-aware opener share | 100.0% (20/20) | not run: `ANTHROPIC_API_KEY` unavailable | same |
-| LCEL citation parity | 100.0% (13/13) | not applicable | `python -m eval.lcel_parity` |
-| Adversarial cases | see known failures below | not run | `python -m eval.adversarial` |
+| Intent accuracy | 100.0% (30/30) | `python -m eval.evaluator` |
+| Policy grounding rate | 100.0% (64/64) | `python -m eval.evaluator` |
+| Resolved without escalation | 87.5% (56/64) | `python -m eval.evaluator` |
+| Escalated by design | 12.5% (8/64) | `python -m eval.evaluator` |
+| Redundant question rate | 0.0% (0) | `python -m eval.evaluator` |
+| Root-cause accuracy | 100.0% (40/40) | `python -m eval.evaluator` |
+| Average turns / call | 1.25 (weighted 80 turns / 64 calls) | `python -m eval.evaluator` |
+| Memory turns | 3.0 -> 1.0 (20 borrowers) | `python -m eval.evaluator` |
+| Memory-aware opener share | 100.0% (20/20) | `python -m eval.evaluator` |
+| LCEL citation parity | 100.0% (13/13) | `python -m eval.lcel_parity` |
+| Adversarial cases | 26 of 30 passed | `python -m eval.adversarial` |
+
+All results come from the deterministic planner. The Anthropic tool use loop is covered by tests
+with a mocked client and has not been evaluated live. Run
+`python -m eval.evaluator --llm` with an API key to measure it.
 
 `Average turns / call` is the weighted overall value in the JSON (`total turns / total runs`). The unweighted mean of the eight scenario averages is different; the earlier discrepancy came from a stale scenario table, including an outdated settlement row. The scenario table in the generated artifact is authoritative.
 
@@ -42,9 +46,6 @@ that arbitrary language or service failures are solved.
 The labelled intent set contains 30 cases and the root-cause set runs 40 samples. These are generated from the reproducible synthetic data created by `python -m data.generate`.
 
 ## Quickstart
-
-# 6. run full test suite (121 tests, all offline — no API keys needed)
-python -m pytest
 
 ```powershell
 python -m venv .venv
