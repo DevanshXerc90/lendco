@@ -12,11 +12,20 @@ def _readme() -> str:
 
 def test_readme_summary_is_recomputed_from_results():
     results = json.loads((ROOT / "eval" / "results.json").read_text(encoding="utf-8"))
+    adversarial = json.loads(
+        (ROOT / "eval" / "results_adversarial.json").read_text(encoding="utf-8")
+    )
     overall = results["scenarios"]["overall"]
     intents = results["intents"]
     root = results["root_cause"]
     memory = results["memory_learning"]
     readme = _readme()
+    per_scenario = results["scenarios"]["per_scenario"]
+    scenario_turns = sum(
+        scenario["runs"] * scenario["avg_turns"] for scenario in per_scenario.values()
+    )
+    overall_turns = overall["total_runs"] * overall["avg_turns"]
+    assert scenario_turns == overall_turns
 
     checks = {
         "Intent accuracy": f"{intents['intent_accuracy']:.1%} ({intents['labelled_n']}/{intents['labelled_n']})",
@@ -28,10 +37,15 @@ def test_readme_summary_is_recomputed_from_results():
         "Average turns / call": f"{overall['avg_turns']:.2f} (weighted {round(overall['avg_turns'] * overall['total_runs'])} turns / {overall['total_runs']} calls)",
         "Memory turns": f"{memory['call1_mean']:.1f} -> {memory['call2_mean']:.1f} ({memory['borrowers_tested']} borrowers)",
         "Memory-aware opener share": f"{memory['share_memory_aware']:.1%} ({round(memory['share_memory_aware'] * memory['borrowers_tested'])}/{memory['borrowers_tested']})",
+        "Adversarial cases": f"{adversarial['passed']} of {adversarial['cases']} passed",
     }
     for label, value in checks.items():
         row = next(line for line in readme.splitlines() if line.startswith(f"| {label} |"))
         assert value in row, (label, value, row)
+
+    header = next(line for line in readme.splitlines() if line.startswith("| Metric |"))
+    assert header == "| Metric | Result | Reproduce |"
+    assert "not run" not in readme.lower()
 
 
 def test_readme_has_no_resume_claim_language():
