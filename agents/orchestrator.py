@@ -23,6 +23,7 @@ from agents.voice_agent import VoiceAgent, rupee  # noqa: E402
 from core.tools import ToolContext  # noqa: E402
 from core.llm import get_llm  # noqa: E402
 from core.memory import get_memory  # noqa: E402
+from core.dates import iso_now  # noqa: E402
 
 _SENTIMENT = {
     "angry": ["angry", "furious", "ridiculous", "worst", "useless", "fed up", "cheated", "harass"],
@@ -80,7 +81,7 @@ class Orchestrator:
             "actions": [],
             "turns": 0,
             "escalated": False,
-            "started_at": "2026-06-09T10:00:00",
+            "started_at": iso_now(),
         }
 
         name = ctx.profile.get("name", "there")
@@ -164,7 +165,13 @@ class Orchestrator:
         # compose the grounded answer
         tc = self._tool_ctx()
         if self.llm.available:
-            out = self.voice_agent.respond_llm(s["context"], s["recall"], diagnosis, s["history"], tc)
+            try:
+                out = self.voice_agent.respond_llm(s["context"], s["recall"], diagnosis, s["history"], tc)
+            except Exception as e:
+                # A model or network failure must not take the whole call down:
+                # log the reason (no borrower data) and answer deterministically.
+                print(f"[orchestrator] LLM path failed ({type(e).__name__}: {e}); falling back to the rule-based planner")
+                out = self.voice_agent.respond_rule_based(s["context"], s["recall"], diagnosis, s["collected"], tc)
         else:
             out = self.voice_agent.respond_rule_based(s["context"], s["recall"], diagnosis, s["collected"], tc)
 
@@ -174,18 +181,20 @@ class Orchestrator:
             if out["action"] in ("ticket_created",) and diagnosis.intent in ("settlement_request",):
                 s["escalated"] = True
         s["history"].append({"role": "agent", "text": out["text"]})
-        result = self._turn_result(out["text"], diagnosis.intent, out.get("action"), diagnosis=diagnosis)
+        result = self._turn_result(out["text"], diagnosis.intent, out.get("action"),
+                                   diagnosis=diagnosis, grounding=out.get("grounding", []))
         # an answer completed this intent — reset so the next utterance is re-classified
         # afresh (intent only stays sticky while a slot-fill follow-up is pending).
         s["intent"] = None
         s["collected"] = {}
         return result
 
-    def _turn_result(self, text, intent, action, asking=None, diagnosis=None):
+    def _turn_result(self, text, intent, action, asking=None, diagnosis=None, grounding=None):
         return {
             "text": text, "intent": intent, "action": action, "asking": asking,
             "sentiment": self.session["sentiment"],
             "tool_trace": self.session["tool_trace"][-6:],
+            "grounding": grounding or [],
             "diagnosis": diagnosis.to_dict() if diagnosis else None,
         }
 

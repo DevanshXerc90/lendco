@@ -22,6 +22,7 @@ from faker import Faker
 import sys
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 from config import settings  # noqa: E402
+from core.dates import add_months, now, today  # noqa: E402
 
 fake = Faker("en_IN")
 
@@ -62,7 +63,9 @@ def _monthly_emi(principal: float, annual_rate: float, months: int) -> float:
 
 def gen_borrowers(n: int = 120) -> list[dict]:
     borrowers = []
-    today = date(2026, 6, 9)
+    # Anchor the synthetic schedule to the real current date (no hardcoded date):
+    # loans started a few calendar months back so there is real payment history.
+    anchor = today()
     for i in range(1, n + 1):
         bid = f"BRW{i:05d}"
         loan_type = random.choice(LOAN_TYPES)
@@ -71,8 +74,8 @@ def gen_borrowers(n: int = 120) -> list[dict]:
         tenure = random.choice([12, 24, 36, 48, 60, 84, 120])
         # Started somewhere in the past so there is real payment history.
         months_elapsed = random.randint(3, min(tenure - 1, 30))
-        start = today - timedelta(days=months_elapsed * 30 + random.randint(0, 20))
-        end = start + timedelta(days=tenure * 30)
+        start = add_months(anchor, -months_elapsed) - timedelta(days=random.randint(0, 20))
+        end = add_months(start, tenure)
         emi = _monthly_emi(amount, rate, tenure)
 
         # Delinquency buckets weighted toward "current".
@@ -124,18 +127,29 @@ def gen_borrowers(n: int = 120) -> list[dict]:
 def gen_payments(borrowers: list[dict]) -> list[dict]:
     payments = []
     pid = 1
-    today = date(2026, 6, 9)
+    today_now = today()
     for b in borrowers:
         start = date.fromisoformat(b["loan_start_date"])
         emi = b["emi_amount"]
-        n_installments = b["months_elapsed"]
-        # Borrowers in delinquency miss / fail more recent installments.
-        delinquent = b["dpd_days"] > 0
-        for k in range(n_installments):
-            due = start + timedelta(days=(k + 1) * 30)
-            if due > today:
+        # Calendar-month schedule: collect the installments that have actually
+        # fallen due by today (never assume 30-day months).
+        due_dates: list[date] = []
+        k = 0
+        while True:
+            due = add_months(start, k + 1)
+            if due > today_now:
                 break
-            is_recent = k >= n_installments - max(1, b["dpd_days"] // 30 + 1)
+            due_dates.append(due)
+            k += 1
+
+        n_installments = len(due_dates)
+        # Only recent installments can be unpaid: an old installment that was
+        # never cleared would give a borrower an absurd DPD, which the reconcile
+        # step then surfaces. A "window" of missed payments matches the DPD.
+        window = max(1, b["dpd_days"] // 30 + 1)
+        delinquent = b["dpd_days"] > 0
+        for k, due in enumerate(due_dates):
+            is_recent = k >= n_installments - window
 
             roll = random.random()
             if delinquent and is_recent and roll < 0.6:
@@ -145,10 +159,14 @@ def gen_payments(borrowers: list[dict]) -> list[dict]:
                     status = "auto_debit_failed"
                 else:
                     reason = random.choice(["insufficient_funds", "technical_decline", "mandate_revoked"])
-                    status = random.choice(["failed", "missed"])
-            elif roll < 0.05:
+                    # "partial" keeps part-payment records in the demo data so the
+                    # shortfall logic has something real to work on.
+                    status = random.choice(["failed", "missed", "partial"])
+            elif is_recent and roll < 0.05:
+                # A one-off hiccup on a recent installment (gateway timeout,
+                # part payment, ...). Older installments always settled.
                 reason = random.choice(list(FAILURE_MODES.keys()))
-                status = random.choice(["failed", "partial"])
+                status = random.choices(["failed", "partial"], weights=[30, 70])[0]
             else:
                 reason = None
                 status = "success"
@@ -187,6 +205,51 @@ def gen_payments(borrowers: list[dict]) -> list[dict]:
     return payments
 
 
+def _dpd_bucket(dpd: int) -> str:
+    if dpd <= 0:
+        return "current"
+    if dpd <= 30:
+        return "dpd_1_30"
+    if dpd <= 60:
+        return "dpd_31_60"
+    if dpd <= 90:
+        return "dpd_61_90"
+    return "dpd_90_plus"
+
+
+def reconcile_delinquency(borrowers: list[dict], payments: list[dict]) -> None:
+    """Make each borrower's delinquency fields agree with their payment records.
+
+    `dpd_days` is derived from the ledger instead of being a separate guess:
+    it is the number of days since the earliest installment that is due, has no
+    successful payment and is therefore still outstanding. A borrower marked
+    "current" can no longer show an overdue amount, and a borrower marked
+    delinquent always has an unpaid installment behind it.
+    """
+    # Group attempts per installment: a failed attempt followed by a successful
+    # retry means the installment is settled, not overdue.
+    groups: dict[tuple[str, str], list[dict]] = {}
+    for p in payments:
+        groups.setdefault((p["borrower_id"], str(p["installment_no"])), []).append(p)
+
+    unpaid_since: dict[str, str] = {}
+    for rows in groups.values():
+        if any(r["status"] == "success" for r in rows):
+            continue
+        due = min(r["due_date"] for r in rows)
+        if date.fromisoformat(due) > today():
+            continue  # not due yet
+        bid = rows[0]["borrower_id"]
+        if bid not in unpaid_since or due < unpaid_since[bid]:
+            unpaid_since[bid] = due
+
+    for b in borrowers:
+        since = unpaid_since.get(b["borrower_id"])
+        dpd = (today() - date.fromisoformat(since)).days if since else 0
+        b["dpd_days"] = dpd
+        b["delinquency_status"] = _dpd_bucket(dpd)
+
+
 TICKET_TEMPLATES = [
     ("emi_dispute", "EMI amount looks higher than agreed", "Borrower disputes the EMI debited this month versus sanction letter."),
     ("settlement_request", "Request for one-time settlement", "Borrower facing financial hardship, requesting a settlement quote."),
@@ -200,11 +263,11 @@ TICKET_TEMPLATES = [
 
 def gen_tickets(borrowers: list[dict], n: int = 130) -> list[dict]:
     tickets = []
-    today = datetime(2026, 6, 9, 10, 0, 0)
+    now_ref = now()
     for i in range(1, n + 1):
         b = random.choice(borrowers)
         cat, subj, desc = random.choice(TICKET_TEMPLATES)
-        created = today - timedelta(days=random.randint(0, 120), hours=random.randint(0, 23))
+        created = now_ref - timedelta(days=random.randint(0, 120), hours=random.randint(0, 23))
         status = random.choices(["open", "in_progress", "resolved", "closed"], weights=[25, 20, 30, 25])[0]
         resolved_states = {"resolved", "closed"}
         tickets.append({
@@ -242,11 +305,11 @@ SENTIMENTS = ["positive", "neutral", "frustrated", "anxious", "angry"]
 
 def gen_conversations(borrowers: list[dict], n: int = 130) -> list[dict]:
     convos = []
-    today = datetime(2026, 6, 9, 10, 0, 0)
+    now_ref = now()
     for i in range(1, n + 1):
         b = random.choice(borrowers)
         intent = random.choice(INTENTS)
-        ts = today - timedelta(days=random.randint(1, 180), hours=random.randint(0, 23))
+        ts = now_ref - timedelta(days=random.randint(1, 180), hours=random.randint(0, 23))
         sentiment = random.choices(SENTIMENTS, weights=[20, 35, 25, 12, 8])[0]
         ptp = None
         transcript = [{"role": "agent", "text": "Thank you for calling. How can I help you today?"}]
@@ -447,6 +510,7 @@ def main() -> None:
 
     borrowers = gen_borrowers(120)
     payments = gen_payments(borrowers)
+    reconcile_delinquency(borrowers, payments)
     tickets = gen_tickets(borrowers, 130)
     conversations = gen_conversations(borrowers, 130)
 

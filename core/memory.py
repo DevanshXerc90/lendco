@@ -19,16 +19,15 @@ outcome-oriented (proven resolution path).
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 from contextlib import contextmanager
-from datetime import datetime
 
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 from config import settings  # noqa: E402
-
-NOW = lambda: datetime(2026, 6, 9, 10, 0, 0).isoformat()  # deterministic clock for demos
+from core.dates import iso_now  # noqa: E402
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS borrower_memory (
@@ -61,6 +60,25 @@ CREATE TABLE IF NOT EXISTS agent_memory (
 );
 """
 
+# Long-term memory should not become a second copy of the borrower's KYC data.
+_PAN_RE = re.compile(r"\b([A-Z]{5})\d{4}([A-Z])\b")
+_PHONE_RE = re.compile(r"(?:\+91[\s-]?)?\b\d{10}\b")
+_EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
+
+
+def scrub(text):
+    """Mask PAN, phone and email in free text before it is persisted.
+
+    Anything a borrower says can end up in memory (FAQ questions, answers,
+    commitment reasons, transcripts); we keep the conversation but not the
+    identifiers, mirroring the masking the public API already applies.
+    """
+    if not isinstance(text, str) or not text:
+        return text
+    text = _PAN_RE.sub(lambda m: f"{m.group(1)}****{m.group(2)}", text)
+    text = _PHONE_RE.sub(lambda m: "*" * (len(m.group(0)) - 3) + m.group(0)[-3:], text)
+    return _EMAIL_RE.sub("***@***.***", text)
+
 
 class MemoryManager:
     def __init__(self, db_path: Path | None = None):
@@ -85,7 +103,7 @@ class MemoryManager:
             c.execute(
                 "INSERT INTO borrower_memory(borrower_id,key,value,updated_at) VALUES(?,?,?,?) "
                 "ON CONFLICT(borrower_id,key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
-                (borrower_id, key, json.dumps(value), NOW()),
+                (borrower_id, key, json.dumps(value), iso_now()),
             )
 
     def get_preferences(self, borrower_id: str) -> dict:
@@ -95,10 +113,11 @@ class MemoryManager:
 
     # ---------------------------------------------------- Commitments (PTP)
     def record_commitment(self, borrower_id: str, date: str, amount: float, reason: str) -> dict:
+        reason = scrub(reason)
         with self._conn() as c:
             cur = c.execute(
                 "INSERT INTO commitments(borrower_id,date,amount,reason,kept,created_at) VALUES(?,?,?,?,?,?)",
-                (borrower_id, date, amount, reason, None, NOW()),
+                (borrower_id, date, amount, reason, None, iso_now()),
             )
             cid = cur.lastrowid
         return {"id": cid, "borrower_id": borrower_id, "date": date, "amount": amount, "reason": reason, "kept": None}
@@ -117,11 +136,12 @@ class MemoryManager:
 
     # ---------------------------------------------------- FAQs
     def record_faq(self, borrower_id: str, intent: str, question: str) -> None:
+        question = scrub(question)
         with self._conn() as c:
             c.execute(
                 "INSERT INTO faqs(borrower_id,question,intent,count,last_asked) VALUES(?,?,?,1,?) "
                 "ON CONFLICT(borrower_id,intent) DO UPDATE SET count=count+1, last_asked=excluded.last_asked, question=excluded.question",
-                (borrower_id, question, intent, NOW()),
+                (borrower_id, question, intent, iso_now()),
             )
 
     def get_faqs(self, borrower_id: str) -> list[dict]:
@@ -133,10 +153,11 @@ class MemoryManager:
 
     # ---------------------------------------------------- Conversation memory
     def record_qa(self, session_id: str, borrower_id: str, slot: str, question: str, answer: str) -> None:
+        question, answer = scrub(question), scrub(answer)
         with self._conn() as c:
             c.execute(
                 "INSERT INTO qa_pairs(session_id,borrower_id,slot,question,answer,asked_at) VALUES(?,?,?,?,?,?)",
-                (session_id, borrower_id, slot, question, answer, NOW()),
+                (session_id, borrower_id, slot, question, answer, iso_now()),
             )
 
     def get_asked_slots(self, borrower_id: str) -> set[str]:
@@ -145,6 +166,11 @@ class MemoryManager:
         return {r["slot"] for r in rows}
 
     def save_conversation(self, session: dict) -> None:
+        transcript = [
+            {**turn, "text": scrub(turn.get("text", ""))}
+            if isinstance(turn, dict) else turn
+            for turn in session.get("transcript", [])
+        ]
         with self._conn() as c:
             c.execute(
                 "INSERT OR REPLACE INTO conversations"
@@ -152,9 +178,9 @@ class MemoryManager:
                 "VALUES(?,?,?,?,?,?,?,?,?,?)",
                 (
                     session["session_id"], session["borrower_id"], session.get("intent"),
-                    session.get("started_at"), session.get("ended_at", NOW()),
+                    session.get("started_at"), session.get("ended_at", iso_now()),
                     1 if session.get("resolved") else 0, session.get("sentiment"),
-                    session.get("turns", 0), json.dumps(session.get("transcript", [])),
+                    session.get("turns", 0), json.dumps(transcript),
                     json.dumps(session.get("outstanding", [])),
                 ),
             )
@@ -181,8 +207,8 @@ class MemoryManager:
                 "VALUES(?,?,?,?,?,1,?) "
                 "ON CONFLICT(intent,resolution_path) DO UPDATE SET "
                 "success_count=success_count+?, fail_count=fail_count+?, total_turns=total_turns+?, runs=runs+1, updated_at=?",
-                (intent, resolution_path, 1 if success else 0, 0 if success else 1, turns, NOW(),
-                 1 if success else 0, 0 if success else 1, turns, NOW()),
+                (intent, resolution_path, 1 if success else 0, 0 if success else 1, turns, iso_now(),
+                 1 if success else 0, 0 if success else 1, turns, iso_now()),
             )
 
     def best_resolution_path(self, intent: str) -> dict | None:

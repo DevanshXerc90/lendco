@@ -5,32 +5,37 @@ Run:  uvicorn platforms.workflow.app:app --port 8105
 """
 from __future__ import annotations
 
-from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import Depends, FastAPI, HTTPException
+from pydantic import BaseModel, Field
 
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
-from platforms.common import append_runtime, read_runtime, next_id  # noqa: E402
+from config import settings  # noqa: E402
+from platforms.common import append_runtime, read_runtime, next_id, require_platform_key  # noqa: E402
 
 app = FastAPI(title="Workflow Platform", version="1.0")
 
+# The automations this back office actually knows how to run. Anything else is
+# rejected so a stray tool call cannot fire an undefined workflow.
+WORKFLOWS = set(settings.WORKFLOW_NAMES)
+
 
 class Callback(BaseModel):
-    borrower_id: str
-    reason: str
-    preferred_window: str = "tomorrow 10:00-12:00"
+    borrower_id: str = Field(pattern=r"^BRW\d{5}$")
+    reason: str = Field(min_length=1, max_length=300)
+    preferred_window: str = Field(default="tomorrow 10:00-12:00", max_length=80)
 
 
 class Escalation(BaseModel):
-    borrower_id: str
-    reason: str
+    borrower_id: str = Field(pattern=r"^BRW\d{5}$")
+    reason: str = Field(min_length=1, max_length=300)
     priority: str = "high"
-    context: str | None = None
+    context: str | None = Field(default=None, max_length=1000)
 
 
 class Trigger(BaseModel):
-    borrower_id: str
+    borrower_id: str = Field(pattern=r"^BRW\d{5}$")
     params: dict = {}
 
 
@@ -39,21 +44,25 @@ def health():
     return {"status": "ok", "service": "workflow"}
 
 
-@app.post("/callbacks")
+@app.post("/callbacks", dependencies=[Depends(require_platform_key)])
 def schedule_callback(cb: Callback):
     record = {"callback_id": next_id("callbacks", "CB"), "status": "scheduled", **cb.model_dump()}
     return append_runtime("callbacks", record)
 
 
-@app.post("/escalations")
+@app.post("/escalations", dependencies=[Depends(require_platform_key)])
 def escalate(e: Escalation):
+    if e.priority not in settings.TICKET_PRIORITIES:
+        raise HTTPException(422, f"Unknown priority '{e.priority}'.")
     record = {"escalation_id": next_id("escalations", "ESC"), "status": "routed_to_human", **e.model_dump()}
     return append_runtime("escalations", record)
 
 
-@app.post("/workflows/{name}/trigger")
+@app.post("/workflows/{name}/trigger", dependencies=[Depends(require_platform_key)])
 def trigger(name: str, t: Trigger):
     """Fire a named automation, e.g. 'reregister_mandate', 'send_foreclosure_statement'."""
+    if name not in WORKFLOWS:
+        raise HTTPException(404, f"Unknown workflow '{name}'. Allowed: {sorted(WORKFLOWS)}")
     record = {
         "run_id": next_id("workflow_runs", "WF"),
         "workflow": name,

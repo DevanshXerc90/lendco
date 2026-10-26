@@ -43,7 +43,8 @@ The labelled intent set contains 30 cases and the root-cause set runs 40 samples
 
 ## Quickstart
 
-Supported Python: 3.11 and 3.12.
+# 6. run full test suite (121 tests, all offline — no API keys needed)
+python -m pytest
 
 ```powershell
 python -m venv .venv
