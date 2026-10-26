@@ -1,9 +1,16 @@
 # Deployment Instructions
 
+Open demo mode is for local development only. A Vercel deployment must set
+`API_SECRET`, `DEMO_API_KEY`, and `CORS_ORIGINS`; the application refuses to
+start in production when either secret is missing. `/api/chat` and
+`/api/scenario` require `X-API-Key`, enforce a 16 KiB request limit, and apply
+an in-memory per-IP rate limit. Use a shared gateway limiter for a
+multi-instance production deployment.
+
 ## A. Local (recommended for the demo)
 
 ### Prerequisites
-- Python 3.10+ (tested on 3.14). `pip`.
+- Python 3.11 or 3.12. `pip`.
 - Everything else is optional and degrades gracefully.
 
 ### Steps
@@ -77,3 +84,15 @@ scripts/       run_platforms, reset, record_demos
 docs/          architecture, system design, deployment, demo script
 tests/         pytest suite
 ```
+
+### Vercel environment variables
+
+Required:
+
+- `API_SECRET`: server-side secret used to authorize protected API requests.
+- `DEMO_API_KEY`: key supplied in the `X-API-Key` header by the demo client.
+- `CORS_ORIGINS`: comma-separated exact browser origins.
+
+Optional: `ANTHROPIC_API_KEY`, `LLM_MODEL`, `CRM_URL`, `PAYMENTS_URL`,
+`SUPPORT_URL`, `KNOWLEDGE_URL`, `WORKFLOW_URL`, and `EMBEDDINGS_BACKEND`.
+Never commit any of these values.

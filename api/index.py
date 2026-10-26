@@ -11,27 +11,77 @@ import json
 import os
 import sys
 import tempfile
-from collections import defaultdict
+import time
+from collections import defaultdict, deque
 from pathlib import Path
 
 # ---------- project root on sys.path ----------------------------------------
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from fastapi import FastAPI, HTTPException, Query  # noqa: E402
+from fastapi import FastAPI, HTTPException, Query, Request  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
-from pydantic import BaseModel  # noqa: E402
+from fastapi.responses import JSONResponse  # noqa: E402
+from pydantic import BaseModel, Field  # noqa: E402
 
 from config import settings  # noqa: E402
 
 # ---------- app setup -------------------------------------------------------
+ENVIRONMENT = os.getenv("ENV", "").strip().lower()
+API_SECRET = os.getenv("API_SECRET", "").strip()
+DEMO_API_KEY = os.getenv("DEMO_API_KEY", "").strip()
+if (os.getenv("VERCEL") or ENVIRONMENT == "production") and (not API_SECRET or not DEMO_API_KEY):
+    raise RuntimeError("API_SECRET and DEMO_API_KEY are required in production")
+
+MAX_BODY_BYTES = 16 * 1024
+RATE_LIMIT = 30
+RATE_WINDOW_SECONDS = 60
+_rate_buckets: dict[str, deque[float]] = defaultdict(deque)
+
 app = FastAPI(title="LendCo Voice Agent API", docs_url="/api/docs")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=[x.strip() for x in os.getenv(
+        "CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"
+    ).split(",") if x.strip()],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "X-API-Key", "Authorization"],
 )
+
+
+@app.middleware("http")
+async def request_limits(request: Request, call_next):
+    protected = request.url.path.startswith("/api/") and request.url.path not in {
+        "/api/health", "/api/docs", "/api/openapi.json"
+    }
+    if protected and (DEMO_API_KEY or API_SECRET or os.getenv("VERCEL") or ENVIRONMENT == "production"):
+        supplied = request.headers.get("x-api-key", "")
+        valid_keys = {key for key in (DEMO_API_KEY, API_SECRET) if key}
+        if supplied not in valid_keys:
+            return JSONResponse({"detail": "X-API-Key is required"}, status_code=401)
+    if request.url.path in {"/api/chat", "/api/scenario"}:
+        content_length = request.headers.get("content-length")
+        if content_length and int(content_length) > MAX_BODY_BYTES:
+            return JSONResponse({"detail": "request body too large"}, status_code=413)
+        key = f"{request.client.host if request.client else 'unknown'}:{request.url.path}"
+        now = time.monotonic()
+        bucket = _rate_buckets[key]
+        while bucket and now - bucket[0] >= RATE_WINDOW_SECONDS:
+            bucket.popleft()
+        if len(bucket) >= RATE_LIMIT:
+            return JSONResponse({"detail": "rate limit exceeded"}, status_code=429)
+        bucket.append(now)
+    return await call_next(request)
+
+
+def _require_demo_key(request: Request) -> None:
+    """Local development is open; deployed or configured demo mode is keyed."""
+    if not DEMO_API_KEY and not API_SECRET and not (os.getenv("VERCEL") or ENVIRONMENT == "production"):
+        return
+    supplied = request.headers.get("x-api-key", "")
+    valid_keys = {key for key in (DEMO_API_KEY, API_SECRET) if key}
+    if supplied not in valid_keys:
+        raise HTTPException(401, "X-API-Key is required")
 
 
 # ---------- data helpers ----------------------------------------------------
@@ -155,14 +205,15 @@ def get_analytics(borrower_id: str):
 # ── Agent chat ──────────────────────────────────────────────────────────────
 class ChatRequest(BaseModel):
     borrower_id: str
-    message: str
+    message: str = Field(..., min_length=1, max_length=4000)
 
 
 @app.post("/api/chat")
-def chat(req: ChatRequest):
-    from core.memory import MemoryManager
-    from core.llm import NullLLM
+def chat(req: ChatRequest, request: Request):
+    _require_demo_key(request)
     from agents.orchestrator import Orchestrator
+    from core.llm import NullLLM
+    from core.memory import MemoryManager
 
     mem = MemoryManager(db_path=tempfile.mktemp(suffix=".db"))
     orc = Orchestrator(memory=mem, llm=NullLLM())
@@ -182,15 +233,16 @@ def chat(req: ChatRequest):
 
 # ── Scenario runner ─────────────────────────────────────────────────────────
 class ScenarioRequest(BaseModel):
-    scenario: str
+    scenario: str = Field(..., min_length=1, max_length=64)
 
 
 @app.post("/api/scenario")
-def run_scenario(req: ScenarioRequest):
-    from app.scenarios import SCRIPTS, PTP_MEMORY, pick_borrower
-    from core.memory import MemoryManager
-    from core.llm import NullLLM
+def run_scenario(req: ScenarioRequest, request: Request):
+    _require_demo_key(request)
     from agents.orchestrator import Orchestrator
+    from app.scenarios import PTP_MEMORY, SCRIPTS, pick_borrower
+    from core.llm import NullLLM
+    from core.memory import MemoryManager
 
     if req.scenario == "ptp_memory":
         mem = MemoryManager(db_path=tempfile.mktemp(suffix=".db"))
