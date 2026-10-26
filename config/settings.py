@@ -16,18 +16,6 @@ DATA_DIR = ROOT / "data" / "generated"
 KB_DIR = DATA_DIR / "kb"
 MEMORY_DB = ROOT / "data" / "memory.db"
 
-# --- LLM ---
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "").strip()
-LLM_MODEL = os.getenv("LLM_MODEL", "claude-opus-4-8")
-
-# --- Embeddings ---
-EMBEDDINGS_BACKEND = os.getenv("EMBEDDINGS_BACKEND", "tfidf")
-
-# --- Voice ---
-STT_BACKEND = os.getenv("STT_BACKEND", "text")
-TTS_BACKEND = os.getenv("TTS_BACKEND", "print")
-WHISPER_MODEL = os.getenv("WHISPER_MODEL", "base.en")
-
 # --- Real API integrations (optional — falls back to mock services) ---
 HUBSPOT_ACCESS_TOKEN = os.getenv("HUBSPOT_ACCESS_TOKEN", "").strip()
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "").strip()
@@ -101,9 +89,6 @@ PAYMENT_STATUSES = ("success", "failed", "partial", "missed", "auto_debit_failed
 # Values each backend setting accepts. Anything else is a configuration error,
 # not something to guess at silently.
 VALID_BACKENDS = {
-    "EMBEDDINGS_BACKEND": ("tfidf", "sentence-transformers"),
-    "STT_BACKEND": ("text", "whisper"),
-    "TTS_BACKEND": ("print", "pyttsx3"),
     "CRM_BACKEND": ("hubspot", "mock"),
     "PAYMENTS_BACKEND": ("stripe", "razorpay", "mock"),
 }
@@ -128,12 +113,9 @@ def validate() -> None:
 def startup_summary() -> list[str]:
     """Human-readable startup state — modes only, never key values."""
     lines = []
-    if not ANTHROPIC_API_KEY:
-        lines.append("[config] ANTHROPIC_API_KEY not set - using the rule-based planner.")
     if not API_SECRET:
         lines.append("[config] API_SECRET not set - borrower tokens reset when the API restarts.")
     if not DEMO_API_KEY:
         lines.append("[config] DEMO_API_KEY not set - operator endpoints are open (demo mode).")
-    lines.append(f"[config] LLM={LLM_MODEL if ANTHROPIC_API_KEY else 'rule-based'} "
-                 f"embeddings={EMBEDDINGS_BACKEND} payments={PAYMENTS_BACKEND} crm={CRM_BACKEND}")
+    lines.append(f"[config] LLM=rule-based payments={PAYMENTS_BACKEND} crm={CRM_BACKEND}")
     return lines

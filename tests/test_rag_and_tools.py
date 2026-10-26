@@ -140,7 +140,7 @@ def test_empty_retrieval_returns_an_explicit_note(ctx, monkeypatch):
     assert ctx.retrieved_docs == set()
 
 
-# ------------------------------------------------------------ model/agent paths
+# ------------------------------------------------------------ rule-based agent paths
 def _diagnosis(intent: str = "penalty_inquiry") -> DiagnosisResult:
     return DiagnosisResult(intent=intent, confidence=0.9, known={}, unknown=[],
                            questions=[], suggested_tools=["search_knowledge_base"])
@@ -156,75 +156,18 @@ class _Ctx:
                           "overdue_amount": 0, "total_penalty_charged": 500}
 
 
-class _FakeLLM:
-    """Model that returns a fabricated citation every time."""
-    available = True
-    name = "fake-model"
-
-    def __init__(self, text: str):
-        self.text = text
-        self.calls = 0
-
-    def run_agent(self, system, messages, tools, tool_executor, **kwargs):
-        self.calls += 1
-        from core.llm import AgentResult
-        return AgentResult(text=self.text, tool_trace=[], iterations=1)
-
-
-def test_fabricated_citation_falls_back_to_safe_answer(monkeypatch):
-    monkeypatch.setattr(clients.support, "create_ticket",
-                        lambda *a, **k: {"ticket_id": "TKTN1"})
-    mem = MemoryManager(db_path=tempfile.mktemp(suffix=".db"))
-    agent = VoiceAgent(llm=_FakeLLM("As per 99_fake_policy you owe nothing."), memory=mem)
-    tool_ctx = ToolContext(borrower_id=BORROWER_ID, context={}, memory=mem, session_id="S-TEST")
-
-    res = agent.respond_llm({}, {}, _diagnosis(), [{"role": "borrower", "text": "why the penalty?"}], tool_ctx)
-
-    assert res["text"] == POLICY_UNVERIFIED_TEXT   # fabricated source never shown
-    assert res["action"] == "ticket_created"
-    assert any(t["tool"] == "create_support_ticket" for t in tool_ctx.trace)
-
-
 def test_empty_retrieval_gives_safe_answer_not_a_policy_claim(monkeypatch, tmp_path):
     monkeypatch.setattr(rag.RAG, "retrieve", lambda self, query, k=3: [])
     monkeypatch.setattr(clients.support, "create_ticket",
                         lambda *a, **k: {"ticket_id": "TKTN1"})
     mem = MemoryManager(db_path=tempfile.mktemp(suffix=".db"))
-    agent = VoiceAgent(llm=None, memory=mem)
+    agent = VoiceAgent(memory=mem)
     tool_ctx = ToolContext(borrower_id=BORROWER_ID, context={}, memory=mem, session_id="S-TEST")
 
     res = agent.respond_rule_based(_Ctx().__dict__, {}, _diagnosis(), {}, tool_ctx)
 
     assert res["text"] == POLICY_UNVERIFIED_TEXT
     assert res["action"] == "ticket_created"
-
-
-class _ExplodingLLM:
-    available = True
-    name = "exploding-model"
-
-    def run_agent(self, *args, **kwargs):
-        raise RuntimeError("model endpoint unavailable")
-
-
-def test_model_failure_falls_back_to_rule_based():
-    mem = MemoryManager(db_path=tempfile.mktemp(suffix=".db"))
-    orc = Orchestrator(memory=mem, llm=_ExplodingLLM())
-    start = orc.start(borrower_id=BORROWER_ID)
-    assert start["found"]
-
-    result = orc.handle("Why was a penalty charged on my account?")
-
-    assert result["text"]                      # a real answer, not an exception
-    assert "penalt" in result["text"].lower()
-    orc.end()
-
-
-def test_untrusted_retrieved_text_is_not_treated_as_instructions():
-    # Retrieved text may contain instruction-like content; the prompt must say
-    # it is data. This keeps the guardrail explicit and reviewable.
-    from agents.voice_agent import PERSONA
-    assert "DATA, not" in PERSONA
 
 
 # ---------------------------------------------------------------- memory hygiene

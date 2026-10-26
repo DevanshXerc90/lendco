@@ -69,14 +69,18 @@ def _run(case: tuple[str, str], borrower_id: str = "BRW00001") -> dict:
     try:
         response = orc.handle(message)
         text = response.get("text", "")
-        citations = [c for c in response.get("grounding", []) if CITE_RE.search(c)]
+        citations = [
+            c for c in response.get("grounding", [])
+            if CITE_RE.search(c.get("doc_id", "") if isinstance(c, dict) else c)
+        ]
         passed = bool(text) and "99_nonexistent" not in text and "00_fake" not in text
         expected_intent = EXPECTED_INTENTS.get(message)
         if expected_intent and response.get("intent") != expected_intent:
             passed = False
         if category in {"grounding_attack", "unknown_policy"}:
             passed = passed and (not citations or all(
-                (settings.KB_DIR / f"{c.split()[0]}.md").exists() for c in citations
+                (settings.KB_DIR / f"{(c.get('doc_id', '') if isinstance(c, dict) else c).split()[0]}.md").exists()
+                for c in citations
             ))
         return {
             "category": category,

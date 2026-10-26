@@ -14,18 +14,6 @@ numpy==2.2.3          # used by the pure-numpy TF-IDF RAG (no scikit-learn neede
 # OPTIONAL — everything below has a graceful fallback; install only what you use.
 # ============================================================================
 
-# LLM reasoning (else: deterministic planner)
-anthropic==0.49.0
-
-# Neural RAG embeddings (else: built-in TF-IDF). Set EMBEDDINGS_BACKEND=sentence-transformers
-# sentence-transformers>=3.0
-
-# Local voice (else: typed input / printed output)
-# faster-whisper>=1.0     # offline STT
-# pyttsx3>=2.98           # offline TTS (Windows SAPI5 / macOS / espeak)
-# sounddevice>=0.4        # mic capture
-# scipy>=1.11
-
 # Interactive dashboard (else: dependency-free HTML via dashboard/build_report.py)
 # streamlit>=1.36
 # pandas>=2.0
@@ -33,7 +21,4 @@ anthropic==0.49.0
 
 # Tests
 pytest==8.3.4
-
-# LangChain integration (optional)
-langchain-core==0.3.40
 

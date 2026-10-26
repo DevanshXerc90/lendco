@@ -1,7 +1,7 @@
 """Agent tool registry.
 
 Each tool is a real action the agent can take against the platforms / memory /
-RAG. Tools are exposed to the LLM as Anthropic tool-use schemas AND are callable
+RAG. Tools are exposed through a shared schema and are callable
 by the deterministic planner (the offline fallback), so behaviour is identical
 with or without an LLM key.
 
