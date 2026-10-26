@@ -1,0 +1,42 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def _readme() -> str:
+    return (ROOT / "README.md").read_text(encoding="utf-8")
+
+
+def test_readme_summary_is_recomputed_from_results():
+    results = json.loads((ROOT / "eval" / "results.json").read_text(encoding="utf-8"))
+    overall = results["scenarios"]["overall"]
+    intents = results["intents"]
+    root = results["root_cause"]
+    memory = results["memory_learning"]
+    readme = _readme()
+
+    checks = {
+        "Intent accuracy": f"{intents['intent_accuracy']:.1%} ({intents['labelled_n']}/{intents['labelled_n']})",
+        "Policy grounding rate": f"{overall['grounding_rate']:.1%} ({round(overall['grounding_rate'] * overall['total_runs'])}/{overall['total_runs']})",
+        "Resolved without escalation": f"{overall['resolved_without_escalation']:.1%} ({round(overall['resolved_without_escalation'] * overall['total_runs'])}/{overall['total_runs']})",
+        "Escalated by design": f"{overall['escalated_by_design']:.1%} ({round(overall['escalated_by_design'] * overall['total_runs'])}/{overall['total_runs']})",
+        "Redundant question rate": f"{overall['redundant_question_rate']:.1%} ({round(overall['redundant_question_rate'] * overall['total_runs'])})",
+        "Root-cause accuracy": f"{root['root_cause_accuracy']:.1%} ({round(root['root_cause_accuracy'] * root['samples'])}/{root['samples']})",
+        "Average turns / call": f"{overall['avg_turns']:.2f} (weighted {round(overall['avg_turns'] * overall['total_runs'])} turns / {overall['total_runs']} calls)",
+        "Memory turns": f"{memory['call1_mean']:.1f} -> {memory['call2_mean']:.1f} ({memory['borrowers_tested']} borrowers)",
+        "Memory-aware opener share": f"{memory['share_memory_aware']:.1%} ({round(memory['share_memory_aware'] * memory['borrowers_tested'])}/{memory['borrowers_tested']})",
+    }
+    for label, value in checks.items():
+        row = next(line for line in readme.splitlines() if line.startswith(f"| {label} |"))
+        assert value in row, (label, value, row)
+
+
+def test_readme_has_no_resume_claim_language():
+    text = _readme().lower()
+    assert "resume" not in text
+    assert "claim 1" not in text
+    assert "verified" not in text
+    assert "zero hallucinations" not in text

@@ -18,18 +18,18 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 import tempfile
 from collections import defaultdict
-
-import sys
 from pathlib import Path
+
 sys.path.append(str(Path(__file__).resolve().parent.parent))
-from config import settings  # noqa: E402
-from core.diagnosis import classify_intent  # noqa: E402
-from core.memory import MemoryManager  # noqa: E402
-from core.llm import NullLLM  # noqa: E402
 from agents.orchestrator import Orchestrator  # noqa: E402
 from app import scenarios  # noqa: E402
+from config import settings  # noqa: E402
+from core.diagnosis import classify_intent  # noqa: E402
+from core.llm import NullLLM  # noqa: E402
+from core.memory import MemoryManager  # noqa: E402
 
 CITE_RE = re.compile(r"\d{2}_[a-z_]+")  # KB doc-id pattern, e.g. 05_penalty_waiver_policy
 
@@ -46,6 +46,24 @@ LABELLED = [
     ("i want a one time settlement", "settlement_request"),
     ("i want to foreclose my loan", "foreclosure"),
     ("give me a summary of my account", "account_info"),
+    ("what is the balance of my loan account", "account_info"),
+    ("show my account information", "account_info"),
+    ("tell me how many EMIs remaining", "remaining_emi"),
+    ("what interest paid so far", "interest_paid"),
+    ("why penalty was added", "penalty_inquiry"),
+    ("the payment failed", "payment_failure"),
+    ("my auto debit failed again", "payment_failure"),
+    ("please waive this late charge", "penalty_waiver"),
+    ("please reverse the penalty fee", "penalty_waiver"),
+    ("i can pay next Friday", "promise_to_pay"),
+    ("i will pay after my paycheck", "promise_to_pay"),
+    ("please help me foreclose early", "foreclosure"),
+    ("what is the foreclosure payoff amount", "foreclosure"),
+    ("can i request a settlement", "settlement_request"),
+    ("i need a one time settlement", "settlement_request"),
+    ("how is interest paid calculated", "interest_paid"),
+    ("how many installments left", "remaining_emi"),
+    ("what is my loan account summary", "account_info"),
 ]
 
 POLICY_INTENTS = {"penalty_inquiry", "penalty_waiver", "payment_failure", "settlement_request",
@@ -134,8 +152,11 @@ def eval_scenarios(n_borrowers: int = 8, llm=None) -> dict:
             "avg_turns": round(s["turns"] / runs, 2),
             "top_tools": sorted(s["tools"], key=s["tools"].get, reverse=True)[:4],
         }
-        tot_runs += s["runs"]; tot_res += s["resolved"]; tot_ground += s["grounded"]
-        tot_intent += s["intent_ok"]; sum_turns += s["turns"]
+        tot_runs += s["runs"]
+        tot_res += s["resolved"]
+        tot_ground += s["grounded"]
+        tot_intent += s["intent_ok"]
+        sum_turns += s["turns"]
     tot_resolved_without_esc = sum(s.get("resolved_without_escalation", 0) for s in per_scenario.values())
     tot_escalated_by_design = sum(s.get("escalated_by_design", 0) for s in per_scenario.values())
     overall = {
@@ -151,7 +172,7 @@ def eval_scenarios(n_borrowers: int = 8, llm=None) -> dict:
 
 
 
-def eval_root_cause(n: int = 25, llm=None) -> dict:
+def eval_root_cause(n: int = 40, llm=None) -> dict:
     """Does the agent's failure classification match the ground-truth root cause?"""
     payments = json.loads((settings.DATA_DIR / "payments.json").read_text(encoding="utf-8"))
     byb = defaultdict(list)
@@ -271,5 +292,3 @@ if __name__ == "__main__":
           f"call2 mean={m['call2_mean']} (min={m['call2_min']}, max={m['call2_max']}), "
           f"share_memory_aware={m['share_memory_aware']*100:.1f}%, saved={m['turns_saved']}")
     print(f"\nwrote {dest_file}")
-
-
