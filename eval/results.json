@@ -1,7 +1,7 @@
 {
   "intents": {
     "intent_accuracy": 1.0,
-    "labelled_n": 12
+    "labelled_n": 30
   },
   "scenarios": {
     "overall": {
@@ -125,7 +125,7 @@
   },
   "root_cause": {
     "root_cause_accuracy": 1.0,
-    "samples": 25
+    "samples": 40
   },
   "memory_learning": {
     "borrowers_tested": 20,

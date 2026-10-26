@@ -9,32 +9,72 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import tempfile
-from collections import defaultdict
+import time
+from collections import defaultdict, deque
 from pathlib import Path
 
 # ---------- project root on sys.path ----------------------------------------
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-import re  # noqa: E402
-
-from fastapi import Depends, FastAPI, Header, HTTPException, Query  # noqa: E402
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
+from fastapi.responses import JSONResponse  # noqa: E402
 from pydantic import BaseModel, Field  # noqa: E402
 
 from api import auth  # noqa: E402
 from config import settings  # noqa: E402
 
 # ---------- app setup -------------------------------------------------------
+ENVIRONMENT = os.getenv("ENV", "").strip().lower()
+API_SECRET = os.getenv("API_SECRET", "").strip()
+DEMO_API_KEY = os.getenv("DEMO_API_KEY", "").strip()
+if (os.getenv("VERCEL") or ENVIRONMENT == "production") and (not API_SECRET or not DEMO_API_KEY):
+    raise RuntimeError("API_SECRET and DEMO_API_KEY are required in production")
+
+MAX_BODY_BYTES = 16 * 1024
+RATE_LIMIT = 30
+RATE_WINDOW_SECONDS = 60
+_rate_buckets: dict[str, deque[float]] = defaultdict(deque)
+
 app = FastAPI(title="LendCo Voice Agent API", docs_url="/api/docs")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=[origin.strip() for origin in os.getenv(
+        "CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"
+    ).split(",") if origin.strip()],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "X-API-Key", "Authorization"],
 )
+
+
+@app.middleware("http")
+async def request_limits(request: Request, call_next):
+    protected = request.url.path.startswith("/api/") and request.url.path not in {
+        "/api/health", "/api/docs", "/api/openapi.json"
+    }
+    if protected and (DEMO_API_KEY or API_SECRET or os.getenv("VERCEL") or ENVIRONMENT == "production"):
+        supplied = request.headers.get("x-api-key", "")
+        valid_keys = {key for key in (DEMO_API_KEY, API_SECRET) if key}
+        if supplied not in valid_keys and not request.headers.get("authorization", "").startswith("Bearer "):
+            return JSONResponse({"detail": "X-API-Key or bearer token is required"}, status_code=401)
+
+    if request.url.path in {"/api/chat", "/api/scenario"}:
+        content_length = request.headers.get("content-length")
+        if content_length and int(content_length) > MAX_BODY_BYTES:
+            return JSONResponse({"detail": "request body too large"}, status_code=413)
+        key = f"{request.client.host if request.client else 'unknown'}:{request.url.path}"
+        now = time.monotonic()
+        bucket = _rate_buckets[key]
+        while bucket and now - bucket[0] >= RATE_WINDOW_SECONDS:
+            bucket.popleft()
+        if len(bucket) >= RATE_LIMIT:
+            return JSONResponse({"detail": "rate limit exceeded"}, status_code=429)
+        bucket.append(now)
+    return await call_next(request)
 
 
 # ---------- data helpers ----------------------------------------------------
@@ -268,9 +308,9 @@ class ChatRequest(BaseModel):
 @app.post("/api/chat")
 def chat(req: ChatRequest, authorization: str | None = Header(None),
          x_api_key: str | None = Header(None)):
-    from core.memory import MemoryManager
-    from core.llm import NullLLM
     from agents.orchestrator import Orchestrator
+    from core.llm import NullLLM
+    from core.memory import MemoryManager
 
     auth.check_borrower_access(req.borrower_id, authorization, x_api_key)
     _borrower_or_404(req.borrower_id)
@@ -297,10 +337,10 @@ class ScenarioRequest(BaseModel):
 
 @app.post("/api/scenario", dependencies=[Depends(auth.require_operator)])
 def run_scenario(req: ScenarioRequest):
-    from app.scenarios import SCRIPTS, PTP_MEMORY, pick_borrower
-    from core.memory import MemoryManager
-    from core.llm import NullLLM
     from agents.orchestrator import Orchestrator
+    from app.scenarios import PTP_MEMORY, SCRIPTS, pick_borrower
+    from core.llm import NullLLM
+    from core.memory import MemoryManager
 
     if req.scenario == "ptp_memory":
         mem = MemoryManager(db_path=tempfile.mktemp(suffix=".db"))

@@ -2,20 +2,20 @@
 # CORE (required) — pure-Python / widely-wheeled; works on Python 3.10–3.14.
 # Versions are lower-bounds so pip can resolve wheels for your interpreter.
 # ============================================================================
-fastapi>=0.110
-uvicorn[standard]>=0.27
-httpx>=0.27
-pydantic>=2.6
-python-dotenv>=1.0
-Faker>=24.0
-numpy>=1.26          # used by the pure-numpy TF-IDF RAG (no scikit-learn needed)
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+httpx==0.28.1
+pydantic==2.10.6
+python-dotenv==1.0.1
+Faker==36.1.1
+numpy==2.2.3          # used by the pure-numpy TF-IDF RAG (no scikit-learn needed)
 
 # ============================================================================
 # OPTIONAL — everything below has a graceful fallback; install only what you use.
 # ============================================================================
 
 # LLM reasoning (else: deterministic planner)
-anthropic>=0.39
+anthropic==0.49.0
 
 # Neural RAG embeddings (else: built-in TF-IDF). Set EMBEDDINGS_BACKEND=sentence-transformers
 # sentence-transformers>=3.0
@@ -32,9 +32,8 @@ anthropic>=0.39
 # plotly>=5.20
 
 # Tests
-pytest>=8.0
+pytest==8.3.4
 
 # LangChain integration (optional)
-langchain-core>=0.1.0
-
+langchain-core==0.3.40
 

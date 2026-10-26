@@ -16,6 +16,16 @@ FIXED_QUERIES = [
     "late payment penalty policy",
     "payment failure handling",
     "penalty waiver eligibility",
+    "foreclosure charges and payoff",
+    "one time settlement eligibility",
+    "interest calculation reducing balance",
+    "NACH mandate registration",
+    "payment link after failed EMI",
+    "late fee reversal after bank error",
+    "part prepayment charges",
+    "loan account statement",
+    "identity verification for KYC update",
+    "how to update a phone number with OTP",
 ]
 
 
