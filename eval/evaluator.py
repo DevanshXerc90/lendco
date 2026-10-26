@@ -248,17 +248,9 @@ def eval_memory(n_borrowers: int = 20, llm=None) -> dict:
 
 
 
-def run_all(use_llm: bool = False) -> dict:
-    if use_llm:
-        if not settings.ANTHROPIC_API_KEY:
-            print("[ERROR] ANTHROPIC_API_KEY is not set. Refusing to run LLM evaluation without an API key.", file=sys.stderr)
-            sys.exit(1)
-        from core.llm import AnthropicLLM
-        llm = AnthropicLLM()
-        out_path = settings.ROOT / "eval" / "results_llm.json"
-    else:
-        llm = NullLLM()
-        out_path = settings.ROOT / "eval" / "results.json"
+def run_all() -> dict:
+    llm = NullLLM()
+    out_path = settings.ROOT / "eval" / "results.json"
 
     results = {
         "intents": eval_intents(),
@@ -273,12 +265,11 @@ def run_all(use_llm: bool = False) -> dict:
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Evaluate agent performance")
-    parser.add_argument("--llm", action="store_true", help="Run evaluation with real AnthropicLLM (requires ANTHROPIC_API_KEY)")
     args = parser.parse_args()
 
-    r = run_all(use_llm=args.llm)
+    r = run_all()
     o = r["scenarios"]["overall"]
-    dest_file = "eval/results_llm.json" if args.llm else "eval/results.json"
+    dest_file = "eval/results.json"
     print("=== EVALUATION RESULTS ===")
     print(f"intent accuracy        : {r['intents']['intent_accuracy']}")
     print(f"resolution rate        : {o['resolution_rate']} (resolved_without_escalation: {o['resolved_without_escalation']}, escalated_by_design: {o['escalated_by_design']})")

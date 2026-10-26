@@ -125,7 +125,7 @@
   },
   "root_cause": {
     "root_cause_accuracy": 1.0,
-    "samples": 40
+    "samples": 39
   },
   "memory_learning": {
     "borrowers_tested": 20,

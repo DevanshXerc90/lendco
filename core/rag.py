@@ -2,7 +2,6 @@
 
 The KB documents are chunked and indexed. Retrieval is pluggable:
   - "tfidf"                : pure-numpy TF-IDF + cosine (zero heavy deps, default)
-  - "sentence-transformers": neural embeddings if the package is installed
 
 `retrieve()` returns scored chunks with their source doc, which the agent cites.
 A grounded answer must reference retrieved chunks; this is how hallucination is
@@ -109,21 +108,6 @@ class _TfidfIndex:
         return [(float(scores[i]), self.chunks[i]) for i in order if scores[i] > 0]
 
 
-# ---------------------------------------------- sentence-transformers (optional)
-class _NeuralIndex:
-    def __init__(self, chunks: list[Chunk]):
-        from sentence_transformers import SentenceTransformer  # lazy
-        self.chunks = chunks
-        self.model = SentenceTransformer("all-MiniLM-L6-v2")
-        self.embs = self.model.encode([c.text for c in chunks], normalize_embeddings=True)
-
-    def search(self, query: str, k: int) -> list[tuple[float, Chunk]]:
-        q = self.model.encode([query], normalize_embeddings=True)[0]
-        scores = self.embs @ q
-        order = np.argsort(scores)[::-1][:k]
-        return [(float(scores[i]), self.chunks[i]) for i in order]
-
-
 @dataclass
 class Retrieved:
     doc_id: str
@@ -133,17 +117,10 @@ class Retrieved:
 
 
 class RAG:
-    def __init__(self, backend: str | None = None):
-        self.backend_name = backend or settings.EMBEDDINGS_BACKEND
+    def __init__(self):
+        self.backend_name = "tfidf"
         self.chunks = self._load_chunks()
-        if self.backend_name == "sentence-transformers":
-            try:
-                self.index = _NeuralIndex(self.chunks)
-            except Exception:
-                self.backend_name = "tfidf"
-                self.index = _TfidfIndex(self.chunks)
-        else:
-            self.index = _TfidfIndex(self.chunks)
+        self.index = _TfidfIndex(self.chunks)
 
     def _load_chunks(self) -> list[Chunk]:
         chunks: list[Chunk] = []

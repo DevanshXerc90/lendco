@@ -41,6 +41,5 @@ services:
       SUPPORT_URL: http://support:8103
       KNOWLEDGE_URL: http://knowledge:8104
       WORKFLOW_URL: http://workflow:8105
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
     depends_on: [crm, payments, support, knowledge, workflow]
     volumes: ["./data:/app/data"]

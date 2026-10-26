@@ -20,4 +20,4 @@ jobs:
       - run: python -m data.generate
       - run: python -m pytest -q
       - run: python -m compileall -q .
-      - run: ruff check api/index.py eval/evaluator.py eval/lcel_parity.py eval/adversarial.py tests/test_api_security.py tests/test_readme_results.py
+      - run: ruff check api/index.py eval/evaluator.py eval/adversarial.py tests/test_api_security.py tests/test_readme_results.py

@@ -5,8 +5,8 @@
 knowledgeable human rep — understanding context, retrieving across systems, diagnosing
 gaps, conducting dynamic conversation, using tools, and learning across calls.
 
-**Non-goals:** real telephony/PSTN integration (the voice layer is local + pluggable);
-production-grade auth/PII handling (modelled but not hardened); a real LLM is optional.
+**Non-goals:** real telephony/PSTN integration; production-grade auth/PII handling
+(modelled but not hardened).
 
 ## 2. Data model (synthetic, reproducible — `data/generate.py`, seed=42)
 - **Borrowers (120):** id, name, phone, loan id/type/amount, interest rate, EMI, tenure,
@@ -64,10 +64,7 @@ payment failed…". For `remaining_emi`, everything is derivable → zero questi
 
 ## 6. Voice Agent (reasoning)
 Two interchangeable paths, identical tools:
-- **LLM path** (`ANTHROPIC_API_KEY` set): a tool-use loop. System prompt carries the
-  context summary, memory recall, persona and diagnosis hints; the model reasons, calls
-  tools, and speaks. Prompt caching on the stable system+tools blocks.
-- **Deterministic planner** (offline): runs the relevant read tools, retrieves policy via
+- **Deterministic planner**: runs the relevant read tools, retrieves policy via
   RAG, takes the correct action, and composes a grounded, cited answer per intent.
 
 Action policy examples:
@@ -96,7 +93,7 @@ Measured by the evaluator (`memory_learning`: call-1 vs call-2 turns, memory-awa
 | Failure | Behaviour |
 |---|---|
 | A platform service down | Client falls back to local data for reads; writes surface a tool error, agent continues. |
-| No `ANTHROPIC_API_KEY` | Deterministic planner (same tools, template phrasing). |
+| Runtime mode | Deterministic planner (same tools, template phrasing). |
 | No voice deps | Text STT/TTS. |
 | Unknown borrower | Agent asks for phone/loan id instead of crashing. |
 | Tool exception | Caught in `tools.execute`, returned as `{error}`, never crashes the loop. |

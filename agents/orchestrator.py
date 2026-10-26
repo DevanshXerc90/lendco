@@ -21,7 +21,6 @@ from agents.knowledge_agent import KnowledgeAgent  # noqa: E402
 from agents.memory_agent import MemoryAgent  # noqa: E402
 from agents.voice_agent import VoiceAgent, rupee  # noqa: E402
 from core.tools import ToolContext  # noqa: E402
-from core.llm import get_llm  # noqa: E402
 from core.memory import get_memory  # noqa: E402
 from core.dates import iso_now  # noqa: E402
 
@@ -47,12 +46,11 @@ ESSENTIAL_PRIORITY = 3  # ask-only slots at/above this priority are asked before
 class Orchestrator:
     def __init__(self, memory=None, llm=None):
         self.memory = memory or get_memory()
-        self.llm = llm or get_llm()
         self.context_agent = ContextAgent(self.memory)
         self.diagnosis_agent = DiagnosisAgent()
         self.knowledge_agent = KnowledgeAgent()
         self.memory_agent = MemoryAgent(self.memory)
-        self.voice_agent = VoiceAgent(self.llm, self.memory)
+        self.voice_agent = VoiceAgent(self.memory)
         self.session = None
 
     # ----------------------------------------------------------------- session
@@ -151,29 +149,19 @@ class Orchestrator:
         s["last_intent"] = diagnosis.intent
 
         # dynamic follow-up: ask one essential ask-only question we still lack
-        if not self.llm.available:
-            essential = [q for q in diagnosis.questions
-                         if q["ask_only"] and q["priority"] <= ESSENTIAL_PRIORITY
-                         and q["slot"] not in s["collected"]]
-            if essential:
-                q = essential[0]
-                s["pending_slot"] = q["slot"]
-                s["asked_slots"].add(q["slot"])
-                s["history"].append({"role": "agent", "text": q["question"]})
-                return self._turn_result(q["question"], diagnosis.intent, None, asking=q["slot"])
+        essential = [q for q in diagnosis.questions
+                     if q["ask_only"] and q["priority"] <= ESSENTIAL_PRIORITY
+                     and q["slot"] not in s["collected"]]
+        if essential:
+            q = essential[0]
+            s["pending_slot"] = q["slot"]
+            s["asked_slots"].add(q["slot"])
+            s["history"].append({"role": "agent", "text": q["question"]})
+            return self._turn_result(q["question"], diagnosis.intent, None, asking=q["slot"])
 
         # compose the grounded answer
         tc = self._tool_ctx()
-        if self.llm.available:
-            try:
-                out = self.voice_agent.respond_llm(s["context"], s["recall"], diagnosis, s["history"], tc)
-            except Exception as e:
-                # A model or network failure must not take the whole call down:
-                # log the reason (no borrower data) and answer deterministically.
-                print(f"[orchestrator] LLM path failed ({type(e).__name__}: {e}); falling back to the rule-based planner")
-                out = self.voice_agent.respond_rule_based(s["context"], s["recall"], diagnosis, s["collected"], tc)
-        else:
-            out = self.voice_agent.respond_rule_based(s["context"], s["recall"], diagnosis, s["collected"], tc)
+        out = self.voice_agent.respond_rule_based(s["context"], s["recall"], diagnosis, s["collected"], tc)
 
         s["tool_trace"].extend(out["tool_trace"])
         if out.get("action"):

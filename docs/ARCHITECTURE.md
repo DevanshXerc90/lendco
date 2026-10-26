@@ -4,10 +4,8 @@
 
 ```mermaid
 flowchart LR
-    B([Borrower]) -- voice --> STT[STT<br/>faster-whisper / text]
-    STT --> ORC
-    ORC --> TTS[TTS<br/>pyttsx3 / print]
-    TTS -- voice --> B
+    B([Borrower]) --> ORC
+    ORC --> B
 
     subgraph AGENTS[Multi-Agent Orchestrator]
         ORC{{Orchestrator}}
@@ -15,13 +13,13 @@ flowchart LR
         DA[Diagnosis Agent]
         KA[Knowledge Agent / RAG]
         MA[Memory Agent]
-        VA[Voice Agent + LLM tool-loop]
+        VA[Voice Agent]
         ORC --> CA & DA & KA & MA & VA
     end
 
     CA --> CE[Context Engine]
     MA --> MEM[(Memory DB<br/>SQLite)]
-    KA --> VEC[(Vector index<br/>TF-IDF / embeddings)]
+    KA --> VEC[(TF-IDF index)]
 
     subgraph PLAT[5 Independent Platforms]
         CRM[CRM<br/>:8101]
@@ -61,7 +59,7 @@ sequenceDiagram
         alt essential info missing
             O-->>B: one focused follow-up question
         else enough to act
-            O->>V: compose (LLM tool-loop OR deterministic planner)
+            O->>V: compose with the deterministic planner
             V->>T: get_gateway_logs / create_ticket / payment_link / ...
             V->>R: search_knowledge_base (ground + cite)
             V-->>O: grounded answer + action
@@ -80,25 +78,22 @@ sequenceDiagram
 | **Clients** | `core/clients.py` | Typed HTTP wrappers with graceful degradation (read fallback to local data if a service is down). |
 | **Context Engine** | `core/context_engine.py` | Aggregates borrower + interaction + operational context; derives loan analytics (EMIs paid/remaining, interest/principal split, outstanding, next due, overdue, penalties). |
 | **Diagnosis Layer** | `core/diagnosis.py` | Intent classification + slot-based gap analysis; emits prioritized, de-duplicated, dynamically-phrased follow-ups; suggests tools + KB queries. |
-| **RAG** | `core/rag.py` | Chunk + index KB; pluggable TF-IDF (default) or neural embeddings; citation-ready retrieval. |
+| **RAG** | `core/rag.py` | Chunk + index KB with TF-IDF; citation-ready retrieval. |
 | **Memory** | `core/memory.py` | Borrower / conversation / agent memory in SQLite; `recall()` + `best_resolution_path()` drive continuous learning. |
-| **Tools** | `core/tools.py` | 11 real actions (read systems, create ticket, payment link, reversal, callback, escalate, record commitment). Shared by LLM loop and deterministic planner. |
-| **LLM** | `core/llm.py` | Pluggable reasoning: Anthropic tool-use loop (with prompt caching) or null-LLM fallback. |
+| **Tools** | `core/tools.py` | 11 real actions (read systems, create ticket, payment link, reversal, callback, escalate, record commitment). Shared by the planner. |
+| **Planner** | `core/llm.py` | Deterministic local reasoning configuration. |
 | **Agents** | `agents/*` | Context / Diagnosis / Knowledge / Memory / Voice agents + the Orchestrator that coordinates them. |
-| **Voice** | `voice/{stt,tts}.py` | Local STT/TTS with text fallbacks. |
 | **Eval + Dashboard** | `eval/`, `dashboard/` | Evaluation harness + self-contained HTML analytics dashboard. |
 
 ## 4. Key design decisions
 1. **Diagnosis drives questioning, not a script.** Slots are *derivable* (resolved from
    systems — never asked) or *ask-only* (only the borrower knows). Only missing,
    essential ask-only slots become questions → no redundant questioning.
-2. **Tools are shared between LLM and fallback.** The same tool registry powers the
-   Anthropic tool-use loop and the offline deterministic planner, so behaviour and
-   side-effects are identical with or without a key.
+2. **Tools are shared by the planner.** The same registry powers every action, so
+   behaviour and side-effects are reproducible without external credentials.
 3. **Grounding is enforced.** Policy intents must cite a KB doc-id; the evaluator
    measures grounding rate.
 4. **Memory is the differentiator.** `recall()` runs before every call; the opener is
    memory-aware; agent memory records which resolution paths actually work.
-5. **Degrade gracefully.** Missing services, missing LLM key, missing voice deps — each
-   has a fallback. This is a production-readiness stance, not a demo shortcut.
+5. **Degrade gracefully.** Missing platform services fall back to local generated data.
 ```
