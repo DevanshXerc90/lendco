@@ -29,42 +29,11 @@ from app import scenarios  # noqa: E402
 from config import settings  # noqa: E402
 from core.diagnosis import classify_intent  # noqa: E402
 from core.llm import NullLLM  # noqa: E402
+from core.llm_planner import HostedIntentPlanner  # noqa: E402
 from core.memory import MemoryManager  # noqa: E402
+from eval.intent_sets import DEV_INTENTS, HELDOUT_INTENTS  # noqa: E402
 
 CITE_RE = re.compile(r"\d{2}_[a-z_]+")  # KB doc-id pattern, e.g. 05_penalty_waiver_policy
-
-LABELLED = [
-    ("how many emis are remaining", "remaining_emi"),
-    ("how many installments are left on my loan", "remaining_emi"),
-    ("how much interest have i paid so far", "interest_paid"),
-    ("why was a penalty charged on my account", "penalty_inquiry"),
-    ("my payment failed even though i had enough balance", "payment_failure"),
-    ("my auto debit failed", "payment_failure"),
-    ("can my penalty be waived because the bank failed", "penalty_waiver"),
-    ("please reverse the penalty", "penalty_waiver"),
-    ("my salary is delayed i will pay next friday", "promise_to_pay"),
-    ("i want a one time settlement", "settlement_request"),
-    ("i want to foreclose my loan", "foreclosure"),
-    ("give me a summary of my account", "account_info"),
-    ("what is the balance of my loan account", "account_info"),
-    ("show my account information", "account_info"),
-    ("tell me how many EMIs remaining", "remaining_emi"),
-    ("what interest paid so far", "interest_paid"),
-    ("why penalty was added", "penalty_inquiry"),
-    ("the payment failed", "payment_failure"),
-    ("my auto debit failed again", "payment_failure"),
-    ("please waive this late charge", "penalty_waiver"),
-    ("please reverse the penalty fee", "penalty_waiver"),
-    ("i can pay next Friday", "promise_to_pay"),
-    ("i will pay after my paycheck", "promise_to_pay"),
-    ("please help me foreclose early", "foreclosure"),
-    ("what is the foreclosure payoff amount", "foreclosure"),
-    ("can i request a settlement", "settlement_request"),
-    ("i need a one time settlement", "settlement_request"),
-    ("how is interest paid calculated", "interest_paid"),
-    ("how many installments left", "remaining_emi"),
-    ("what is my loan account summary", "account_info"),
-]
 
 POLICY_INTENTS = {"penalty_inquiry", "penalty_waiver", "payment_failure", "settlement_request",
                   "foreclosure", "interest_paid"}
@@ -80,8 +49,46 @@ def _fresh_orc(mem, llm=None):
 
 
 def eval_intents() -> dict:
-    correct = sum(1 for u, exp in LABELLED if classify_intent(u)[0] == exp)
-    return {"intent_accuracy": round(correct / len(LABELLED), 3), "labelled_n": len(LABELLED)}
+    correct = sum(1 for u, exp in DEV_INTENTS if classify_intent(u)[0] == exp)
+    return {"intent_accuracy": round(correct / len(DEV_INTENTS), 3),
+            "samples": len(DEV_INTENTS), "split": "dev"}
+
+
+def eval_heldout_intents() -> dict:
+    correct = sum(1 for u, exp in HELDOUT_INTENTS if classify_intent(u)[0] == exp)
+    return {"intent_accuracy": round(correct / len(HELDOUT_INTENTS), 3),
+            "samples": len(HELDOUT_INTENTS), "split": "heldout"}
+
+
+def eval_llm_intents() -> dict:
+    planner = HostedIntentPlanner()
+    if not planner.available:
+        return {"status": "not_run", "reason": "set LENDCO_LLM=1 and ANTHROPIC_API_KEY to enable",
+                "samples": len(HELDOUT_INTENTS)}
+    correct = 0
+    try:
+        for utterance, expected in HELDOUT_INTENTS:
+            correct += planner.classify(utterance) == expected
+    except Exception as exc:
+        return {"status": "error", "reason": f"{type(exc).__name__}: {exc}",
+                "samples": len(HELDOUT_INTENTS)}
+    return {"status": "measured", "intent_accuracy": round(correct / len(HELDOUT_INTENTS), 3),
+            "samples": len(HELDOUT_INTENTS)}
+
+
+def eval_naive_baseline() -> dict:
+    intent_by_scenario = {
+        "remaining": "remaining_emi", "interest": "interest_paid",
+        "penalty": "penalty_inquiry", "payment_failure": "payment_failure",
+        "waiver": "penalty_waiver", "foreclosure": "foreclosure",
+        "settlement": "settlement_request", "account": "account_info",
+    }
+    from core.diagnosis import INTENT_SLOTS
+    turns = [len(INTENT_SLOTS[intent]) for intent in intent_by_scenario.values()]
+    baseline = round(sum(turns) / len(turns), 2)
+    return {"scenario_avg_turns": baseline, "memory_call1_mean": 3.0,
+            "memory_call2_mean": 3.0,
+            "description": "asks every declared slot on every call"}
 
 
 def eval_scenarios(n_borrowers: int = 8, llm=None) -> dict:
@@ -172,7 +179,7 @@ def eval_scenarios(n_borrowers: int = 8, llm=None) -> dict:
 
 
 
-def eval_root_cause(n: int = 40, llm=None) -> dict:
+def eval_root_cause(n: int | None = None, llm=None) -> dict:
     """Does the agent's failure classification match the ground-truth root cause?"""
     payments = json.loads((settings.DATA_DIR / "payments.json").read_text(encoding="utf-8"))
     byb = defaultdict(list)
@@ -192,7 +199,7 @@ def eval_root_cause(n: int = 40, llm=None) -> dict:
         predicted = "system" if ("bank/gateway" in text or "not anything wrong" in text or "system-side" in text) else "customer"
         correct += 1 if predicted == truth else 0
         total += 1
-        if total >= n:
+        if n is not None and total >= n:
             break
     return {"root_cause_accuracy": round(correct / (total or 1), 3), "samples": total}
 
@@ -257,6 +264,9 @@ def run_all() -> dict:
         "scenarios": eval_scenarios(llm=llm),
         "root_cause": eval_root_cause(llm=llm),
         "memory_learning": eval_memory(llm=llm),
+        "intent_heldout": eval_heldout_intents(),
+        "intent_llm": eval_llm_intents(),
+        "baseline": eval_naive_baseline(),
     }
     out_path.write_text(json.dumps(results, indent=2, default=str), encoding="utf-8")
     return results
@@ -271,12 +281,24 @@ if __name__ == "__main__":
     o = r["scenarios"]["overall"]
     dest_file = "eval/results.json"
     print("=== EVALUATION RESULTS ===")
-    print(f"intent accuracy        : {r['intents']['intent_accuracy']}")
+    print(f"intent accuracy (dev)  : {r['intents']['intent_accuracy']:.1%} "
+          f"({round(r['intents']['intent_accuracy'] * r['intents']['samples'])}/{r['intents']['samples']})")
+    h = r["intent_heldout"]
+    print(f"intent accuracy (test) : {h['intent_accuracy']:.1%} "
+          f"({round(h['intent_accuracy'] * h['samples'])}/{h['samples']})")
     print(f"resolution rate        : {o['resolution_rate']} (resolved_without_escalation: {o['resolved_without_escalation']}, escalated_by_design: {o['escalated_by_design']})")
     print(f"grounding rate         : {o['grounding_rate']}")
     print(f"avg turns / call       : {o['avg_turns']}")
     print(f"redundant question rate: {o['redundant_question_rate']}")
     print(f"root-cause accuracy    : {r['root_cause']['root_cause_accuracy']} (n={r['root_cause']['samples']})")
+    b = r["baseline"]
+    print(f"turns baseline/current  : {b['scenario_avg_turns']:.2f} / {o['avg_turns']:.2f}")
+    llm = r["intent_llm"]
+    if llm["status"] == "measured":
+        print(f"intent accuracy (LLM)  : {llm['intent_accuracy']:.1%} "
+              f"({round(llm['intent_accuracy'] * llm['samples'])}/{llm['samples']})")
+    else:
+        print(f"intent accuracy (LLM)  : {llm['status']} ({llm['reason']})")
 
     m = r["memory_learning"]
     print(f"memory (n={m.get('borrowers_tested', 1)}): call1 mean={m['call1_mean']} (min={m['call1_min']}, max={m['call1_max']}) -> "

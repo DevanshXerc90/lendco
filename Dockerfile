@@ -2,7 +2,7 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Core deps only (voice/ML extras are optional and omitted from the image).
+# Core dependencies only; optional dashboard dependencies are omitted.
 COPY requirements.txt .
 RUN pip install --no-cache-dir \
     fastapi uvicorn[standard] httpx pydantic python-dotenv Faker numpy

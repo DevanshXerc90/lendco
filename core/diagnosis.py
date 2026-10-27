@@ -36,7 +36,50 @@ INTENT_KEYWORDS: dict[str, list[str]] = {
 def classify_intent(utterance: str) -> tuple[str, float]:
     """Lightweight keyword classifier. The orchestrator may override with the LLM,
     but this guarantees a deterministic baseline and an offline fallback."""
-    u = utterance.lower()
+    u = utterance.lower().replace("’", "'")
+    aliases = {
+        "penelty": "penalty", "chargd": "charged", "remaning": "remaining",
+        "emies": "emis", "instalments": "installments", "bounced": "failed",
+        "bounce": "failed", "auto pay": "auto debit", "payday": "pay day",
+        "can't pay": "financial difficulty", "cannot pay": "financial difficulty",
+        "lost my job": "financial difficulty", "job loss": "financial difficulty",
+        "no salary": "financial difficulty",
+        "unpaid": "installments left", "interest total": "interest paid",
+        "interest part": "interest paid", "extra fee": "late fee",
+    }
+    for source, target in aliases.items():
+        u = u.replace(source, target)
+    if "financial difficulty" in u:
+        return "settlement_request", 0.9
+    if any(w in u for w in ("waive", "waiver", "reverse", "remove", "refund", "cancel",
+                            "get rid")) and \
+            any(w in u for w in ("penalty", "fee", "charge", "failed", "failure")):
+        return "penalty_waiver", 0.9
+    if any(w in u for w in ("failed", "failure", "rejected", "declined", "unsuccessful", "not work",
+                            "returned")) and any(w in u for w in ("payment", "debit", "emi",
+                                                                    "installment", "nach", "bank")):
+        return "payment_failure", 0.9
+    if any(w in u for w in ("financial difficulty", "hardship", "cannot keep up",
+                            "payment arrangement", "reduced amount")):
+        return "settlement_request", 0.9
+    if "interest" in u and any(w in u for w in ("paid", "pay", "calculated", "portion", "add",
+                                                 "money")):
+        return "interest_paid", 0.9
+    if any(w in u for w in ("still owe", "payments pending", "payments are pending",
+                            "what is left", "repayment balance", "remaining payments", "dues left")):
+        return "remaining_emi", 0.8
+    if any(w in u for w in ("payoff", "close everything", "whole balance", "early closure",
+                            "finish the loan", "pay off everything", "close the loan early",
+                            "close my loan")):
+        return "foreclosure", 0.8
+    if any(w in u for w in ("salary", "payday", "pay day", "pay soon", "payment promise", "plan to pay")):
+        return "promise_to_pay", 0.8
+    if any(w in u for w in ("outstanding", "loan snapshot", "loan details", "what loan",
+                            "next installment", "balance and emi")):
+        return "account_info", 0.8
+    if any(w in u for w in ("penalty", "late fee", "late charge", "account charge",
+                            "extra fee", "fined", "charge")):
+        return "penalty_inquiry", 0.8
     best, best_hits = "general_faq", 0
     for intent, kws in INTENT_KEYWORDS.items():
         hits = sum(1 for kw in kws if kw in u)

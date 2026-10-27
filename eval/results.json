@@ -1,7 +1,8 @@
 {
   "intents": {
-    "intent_accuracy": 1.0,
-    "labelled_n": 30
+    "intent_accuracy": 0.869,
+    "samples": 61,
+    "split": "dev"
   },
   "scenarios": {
     "overall": {
@@ -146,5 +147,21 @@
       "avg_turns": 1.0,
       "runs": 1
     }
+  },
+  "intent_heldout": {
+    "intent_accuracy": 0.983,
+    "samples": 60,
+    "split": "heldout"
+  },
+  "intent_llm": {
+    "status": "not_run",
+    "reason": "set LENDCO_LLM=1 and ANTHROPIC_API_KEY to enable",
+    "samples": 60
+  },
+  "baseline": {
+    "scenario_avg_turns": 2.62,
+    "memory_call1_mean": 3.0,
+    "memory_call2_mean": 3.0,
+    "description": "asks every declared slot on every call"
   }
 }
