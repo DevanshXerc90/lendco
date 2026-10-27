@@ -14,6 +14,7 @@ type only — no credentials and no borrower data.
 from __future__ import annotations
 
 import json
+import os
 import threading
 from functools import lru_cache
 
@@ -74,7 +75,13 @@ def _headers() -> dict:
     return {"X-Platform-Key": settings.PLATFORM_API_KEY} if settings.PLATFORM_API_KEY else {}
 
 
+def _local_only(base: str) -> bool:
+    return os.getenv("LENDCO_LOCAL_ONLY") == "1" and base in settings.PLATFORM_URLS.values()
+
+
 def _get(base: str, path: str, **params):
+    if _local_only(base):
+        raise ConnectionError("local-only mode")
     r = httpx.get(f"{base}{path}", params={k: v for k, v in params.items() if v is not None},
                   headers=_headers(), timeout=_TIMEOUT)
     r.raise_for_status()
@@ -82,6 +89,8 @@ def _get(base: str, path: str, **params):
 
 
 def _post(base: str, path: str, payload: dict):
+    if _local_only(base):
+        raise ConnectionError("local-only mode")
     r = httpx.post(f"{base}{path}", json=payload, headers=_headers(), timeout=_TIMEOUT)
     r.raise_for_status()
     return _json(r, base)
@@ -166,6 +175,8 @@ class CRMClient:
 
 
 def _post_patch(base: str, path: str, payload: dict):
+    if _local_only(base):
+        raise ConnectionError("local-only mode")
     r = httpx.patch(f"{base}{path}", json=payload, headers=_headers(), timeout=_TIMEOUT)
     r.raise_for_status()
     return _json(r, base)

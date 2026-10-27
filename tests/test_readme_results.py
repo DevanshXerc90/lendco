@@ -17,8 +17,9 @@ def test_readme_summary_is_recomputed_from_results():
     )
     overall = results["scenarios"]["overall"]
     intents = results["intents"]
+    heldout = results["intent_heldout"]
     root = results["root_cause"]
-    memory = results["memory_learning"]
+    baseline = results["baseline"]
     readme = _readme()
     per_scenario = results["scenarios"]["per_scenario"]
     scenario_turns = sum(
@@ -28,23 +29,22 @@ def test_readme_summary_is_recomputed_from_results():
     assert scenario_turns == overall_turns
 
     checks = {
-        "Intent accuracy": f"{intents['intent_accuracy']:.1%} ({intents['labelled_n']}/{intents['labelled_n']})",
+        "Dev intent accuracy": f"{intents['intent_accuracy']:.1%} ({round(intents['intent_accuracy'] * intents['samples'])}/{intents['samples']})",
+        "Held-out intent accuracy": f"{heldout['intent_accuracy']:.1%} ({round(heldout['intent_accuracy'] * heldout['samples'])}/{heldout['samples']})",
         "Policy grounding rate": f"{overall['grounding_rate']:.1%} ({round(overall['grounding_rate'] * overall['total_runs'])}/{overall['total_runs']})",
         "Resolved without escalation": f"{overall['resolved_without_escalation']:.1%} ({round(overall['resolved_without_escalation'] * overall['total_runs'])}/{overall['total_runs']})",
         "Escalated by design": f"{overall['escalated_by_design']:.1%} ({round(overall['escalated_by_design'] * overall['total_runs'])}/{overall['total_runs']})",
-        "Redundant question rate": f"{overall['redundant_question_rate']:.1%} ({round(overall['redundant_question_rate'] * overall['total_runs'])})",
         "Root-cause accuracy": f"{root['root_cause_accuracy']:.1%} ({round(root['root_cause_accuracy'] * root['samples'])}/{root['samples']})",
-        "Average turns / call": f"{overall['avg_turns']:.2f} (weighted {round(overall['avg_turns'] * overall['total_runs'])} turns / {overall['total_runs']} calls)",
-        "Memory turns": f"{memory['call1_mean']:.1f} -> {memory['call2_mean']:.1f} ({memory['borrowers_tested']} borrowers)",
-        "Memory-aware opener share": f"{memory['share_memory_aware']:.1%} ({round(memory['share_memory_aware'] * memory['borrowers_tested'])}/{memory['borrowers_tested']})",
-        "Adversarial cases": f"{adversarial['passed']} of {adversarial['cases']} passed",
+        "Average turns / call": f"{overall['avg_turns']:.2f}",
+        "Naive baseline turns / call": f"{baseline['scenario_avg_turns']:.2f}",
+        "Adversarial cases passed": f"{adversarial['passed']} of {adversarial['cases']}",
     }
     for label, value in checks.items():
         row = next(line for line in readme.splitlines() if line.startswith(f"| {label} |"))
         assert value in row, (label, value, row)
 
     header = next(line for line in readme.splitlines() if line.startswith("| Metric |"))
-    assert header == "| Metric | Result | Reproduce |"
+    assert header == "| Metric | Result |"
     assert "not run" not in readme.lower()
 
 
