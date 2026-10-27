@@ -29,9 +29,9 @@ from app import scenarios  # noqa: E402
 from config import settings  # noqa: E402
 from core.diagnosis import classify_intent  # noqa: E402
 from core.llm import NullLLM  # noqa: E402
+from core.llm_planner import HostedIntentPlanner  # noqa: E402
 from core.memory import MemoryManager  # noqa: E402
 from eval.intent_sets import DEV_INTENTS, HELDOUT_INTENTS  # noqa: E402
-from core.llm_planner import HostedIntentPlanner  # noqa: E402
 
 CITE_RE = re.compile(r"\d{2}_[a-z_]+")  # KB doc-id pattern, e.g. 05_penalty_waiver_policy
 
