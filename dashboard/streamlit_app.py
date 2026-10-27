@@ -20,11 +20,11 @@ except Exception:  # pragma: no cover
 
 from dashboard.analytics import all_analytics  # noqa: E402
 
-st.set_page_config(page_title="LendCo Voice Agent", layout="wide")
+st.set_page_config(page_title="LendCo Analytics", layout="wide")
 a = all_analytics()
 pf, pay, ops, conv, ev = a["portfolio"], a["payments"], a["operations"], a["conversations"], a["eval"]
 
-st.title("LendCo Voice Agent — Analytics & Evaluation")
+st.title("LendCo Analytics — Portfolio & Evaluation")
 
 c = st.columns(5)
 c[0].metric("Borrowers", pf["borrowers"])
